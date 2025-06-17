@@ -1,29 +1,39 @@
-import logo from './logo.svg';
 import './App.css';
-// or less ideally
-import { Button } from 'react-bootstrap';
+import { Route, Routes } from "react-router-dom";
+import Home from "./routes/home/home"
+import Login from './routes/login/login';
+import Profile from './routes/profile/profile';
+import Request from './routes/request/request';
+import Signup from './routes/signup/signup';
+import Data from "./routes/admin/data/data";
+import Manage from "./routes/admin/manage/manage";
+import Profile from './routes/admin/profile/profile';
+import Profiles from './routes/admin/profiles/profiles';
+import Requests from './routes/admin/requests/requests';
+import Panel from "./routes/admin/panel/panel";
+import AdminLogin from "./routes/admin/login/login";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-        <Button>
-          My Special Button
-        </Button>
-      </header>
-    </div>
+    <Routes>
+      <Route path="/">
+      <Route index element={<Home/>}/>
+      <Route path="/signup" element={<Signup/>}/>
+      <Route path="/login" element={<Login/>}/>
+      <Route path="/request" element={<Request/>}/>
+      <Route path="/profile" element={<Profile/>}/>
+      </Route>
+
+      {/* Admin Routes */}
+      <Route path="/admin">
+        <Route index element={<Panel/>}/>
+        <Route path="/data" element={<Data/>}/>
+        <Route path="/manage" element={<Manage/>}/>
+        <Route path="/profile" element={<Profile/>}/>
+        <Route path="/profiles" element={<Requests/>}/>
+        <Route path="/login" element={<AdminLogin/>}/>
+      </Route>
+    </Routes>
   );
 }
 
