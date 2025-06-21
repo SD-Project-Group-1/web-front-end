@@ -1,0 +1,147 @@
+@import "../../_variables.scss";
+
+.request {
+  font-size: 32px;
+
+  table {
+    width: 100%;
+    table-layout: fixed;
+    margin: 50px 0;
+  }
+
+  .button-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 100px 0;
+
+    button {
+      margin-left: 30px;
+      font-size: 32px;
+      font-weight: bold;
+      padding: 10px 30px;
+      margin: 0 100px;
+    }
+  }
+}
+
+.request-form {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+
+  margin: 40px 0;
+
+  input {
+    text-align: center;
+    font-weight: bold;
+    font-size: 48px;
+    width: 418px;
+
+    margin: 20px 150px;
+  }
+
+  select {
+    text-align: center;
+    font-weight: bold;
+    font-size: 48px;
+    width: 418px;
+
+    margin: 20px 150px;
+    background-color: $primary_color;
+  }
+}
+
+.signed-in {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  button {
+    width: fit-content;
+    font-weight: bold;
+    font-size: 64px;
+  }
+}
+
+.navbar {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  button {
+    font-size: 32px;
+    font-weight: bold;
+    padding: 0 30px;
+    margin-left: 30px;
+  }
+
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.eligable {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+
+  button {
+    margin-left: 30px;
+    font-size: 32px;
+    font-weight: bold;
+    padding: 0 30px;
+  }
+
+  input {
+    text-align: center;
+    font-weight: bold;
+    font-size: 48px;
+    width: 418px;
+  }
+}
+
+.make-account-box {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding: 10px;
+
+  button {
+    width: fit-content;
+    font-weight: bold;
+    font-size: 64px;
+  }
+}
+
+h1,
+h2 {
+  color: $primary-text;
+  font-weight: bold;
+  width: 100%;
+}
+
+h1 {
+  font-size: 64px;
+}
+
+h2 {
+  font-size: 48px;
+  text-align: center;
+}
+
+p {
+  font-size: 32px;
+}
