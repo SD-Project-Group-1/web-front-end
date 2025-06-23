@@ -1,16 +1,33 @@
-@import '~bootstrap/scss/bootstrap';
-@import "./_variables.scss";
+@import "variables";
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600&display=swap'); //Needed for fonts to work.
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+
+//Overriding bootstract CSS. You can see it in inspect element as "bs-primary" for example.
+//Colors
+$primary: $primary_color;
+$body-bg: $bg-color-primary;
+$body-color: #fff;
+
+// Font
+$font-family-sans-serif: 'Instrument Sans', sans-serif;
+$body-font-family: $font-family-sans-serif;
+
+input,
+select {
+  border-radius: 10px;
+  border: none;
+}
+
+button {
+  border-radius: 20px;
+  border: none;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+
+
+@import '~bootstrap/scss/bootstrap';
