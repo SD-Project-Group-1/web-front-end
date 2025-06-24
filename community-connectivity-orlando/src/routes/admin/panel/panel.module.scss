@@ -1,0 +1,44 @@
+  @import "../../../_variables.scss";
+
+  .container {
+    padding: 20px;
+
+    h1 {
+      font-weight: bold;
+      font-size: 64px;
+    }
+
+    h3 {
+      font-weight: bold;
+      font-size: 48px;
+      width: 100%;
+      text-align: center;
+      margin-top: 50px;
+    }
+
+    video {
+      width: 100%;
+      filter: drop-shadow(0px 0px 7px white);
+    }
+
+    table {
+      overflow: clip;
+      border-collapse: separate;
+      border-radius: 10px;
+      border: 1px solid black;
+
+      tr {
+        border: none;
+      }
+
+      td {
+        color: white !important;
+        border: none;
+      }
+
+      th {
+        color: white !important;
+        border-bottom: 7px solid $bg-color-primary;
+      }
+    }
+  }
