@@ -18,17 +18,14 @@ function Manage() {
   return (
     <div className="container-fluid p-4 text-white" style={{ backgroundColor: '#0d1b2a', minHeight: '100vh' }}>
       <nav className="nav mb-3">
-        {/* Home icon */}
   <a className="nav-link text-white" href="/">
     <i className="bi bi-house-fill me-2"></i>Home
   </a>
-        {/* Tabs */}
         <a className="nav-link text-white" href="/admin/requests">Requests</a>
         <a className="nav-link text-white" href="/admin/profiles">Profiles</a>
         <a className="nav-link text-info fw-bold" href="/admin/manage">Manage</a>
         <a className="nav-link text-white" href="/admin/data">Data</a>
 
-         {/* Profile icon (floats right) */}
   <div className="ms-auto">
     <i className="bi bi-person-circle fs-4 text-white"></i>
   </div>

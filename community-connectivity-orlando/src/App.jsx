@@ -22,9 +22,7 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/request" element={<Request />} />
       <Route path="/profile" element={<Profile />} />
-
-      {/* Admin Routes */}
-      <Route path="/admin" element={<Panel />} />
+      <Route path="/admin" element={<Panel />}/> 
       <Route path="/admin/data" element={<Data />} />
       <Route path="/admin/manage" element={<Manage />} />
       <Route path="/admin/profile" element={<AdminProfile />} />
