@@ -12,6 +12,7 @@ import Profiles from "./routes/admin/profiles/profiles";
 import Requests from "./routes/admin/requests/requests";
 import Panel from "./routes/admin/panel/panel";
 import AdminLogin from "./routes/admin/login/login";
+import AdminNavbar from "./shared/adminNavbar/adminNavbar";
 
 function App() {
   return (
@@ -23,7 +24,7 @@ function App() {
       <Route path="/profile" element={<Profile />} />
 
       {/* Admin Routes */}
-      <Route path="admin">
+      <Route path="admin" element={<AdminNavbar />}>
         {/* TODO: Add layout for navbar */}
         <Route index element={<Panel />} />
         <Route path="data" element={<Data />} />
