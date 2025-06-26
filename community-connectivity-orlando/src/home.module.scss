@@ -1,0 +1,18 @@
+.navbar {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  font-size: 1rem;
+
+  .nav-link {
+    color: #fff !important;
+    margin-right: 1rem;
+    transition: color 0.2s ease;
+  }
+
+  .nav-link:hover {
+    color: #ffc107 !important;
+  }
+
+  .navbar-brand {
+    cursor: pointer;
+  }
+}
