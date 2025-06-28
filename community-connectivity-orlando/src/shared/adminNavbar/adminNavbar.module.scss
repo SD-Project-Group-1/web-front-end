@@ -3,11 +3,21 @@
 .navbar {
   background-color: $bg-color-primary;
 
+  .pfp {
+    font-size: 50px;
+    margin-left: auto;
+  }
+
+  .home-icon {
+    font-size: 50px;
+  }
+
   a {
     color: white !important;
     font-weight: bold;
     font-size: 36px;
     width: 176px;
     text-align: center;
+    text-decoration: none;
   }
 }
