@@ -1,0 +1,81 @@
+@import "../../_variables.scss";
+
+.container {
+  padding: 50px;
+  display: flex;
+
+  @media(max-width:1616px) {
+    flex-direction: column;
+  }
+
+  h1,
+  p,
+  label,
+  input,
+  address {
+    font-size: 36px;
+  }
+
+  button {
+    font-size: 26px;
+  }
+
+  .user-card {
+    padding: 25px;
+    background-color: $bg-color-second;
+
+
+    p {
+      margin-bottom: 25px;
+    }
+  }
+
+  .user-fields {
+    padding: 25px;
+    margin-left: 50px;
+
+    @media(max-width:1616px) {
+      margin-left: 0px;
+      margin-top: 50px;
+    }
+
+    background-color: $bg-color-second;
+
+    .data-fields-container {
+      .data-fields {
+        display: flex;
+        flex-wrap: wrap;
+
+        .field {
+          width: 45%;
+
+          @media(max-width:1150px) {
+            width: 90%;
+          }
+
+          display: flex;
+          flex-direction: column;
+          margin-right: 50px;
+        }
+      }
+
+      button {
+        margin-top: 20px;
+      }
+    }
+
+    .actions {
+
+      h1 {
+        margin: 20px 0;
+      }
+
+      button {
+        width: 230px;
+        height: 80px;
+        margin-right: 20px;
+        margin-bottom: 20px;
+      }
+    }
+  }
+}
