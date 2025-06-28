@@ -105,7 +105,7 @@ function Panel() {
             </Table>
           </div>
           <h4>
-            <Link to="/admin/device">Device Status</Link>
+            <Link to="/admin/manage">Device Status</Link>
           </h4>
           <div className={`${styles["table-container"]}`}>
             <Table>
