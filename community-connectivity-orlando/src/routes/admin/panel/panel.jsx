@@ -1,7 +1,8 @@
 import React, { useEffect } from "react";
 import { useState } from "react";
-import { Container, Table } from "react-bootstrap";
+import { Button, Container, Table } from "react-bootstrap";
 import styles from "./panel.module.scss";
+import { Link } from "react-router-dom";
 
 function Panel() {
   const [hideVid, setHideVid] = useState(false);
@@ -9,10 +10,11 @@ function Panel() {
   const [devStatus, setDevStatus] = useState([]);
 
   useEffect(() => {
+    setHideVid(sessionStorage.getItem("hideVid") === "true");
     populateFakeData();
   }, []);
 
-  function populateFakeData() {
+  const populateFakeData = () => {
     const fakeRequests = [
       { first: "Alice", last: "Johnson", device: "Laptop A123" },
       { first: "Bob", last: "Smith", device: "Tablet T456" },
@@ -56,7 +58,12 @@ function Panel() {
 
     setDevRequests(fakeRequests);
     setDevStatus(fakeStatuses);
-  }
+  };
+
+  const hideVideo = () => {
+    setHideVid(true);
+    sessionStorage.setItem("hideVid", "true");
+  };
 
   return (
     <Container>
@@ -66,51 +73,62 @@ function Panel() {
           (
             <div>
               <h3>Tutorial Video</h3>
-              <video src="https://files.theneil.zone/bsof.mp4" />
+              <div className={`${styles["video-box"]}`}>
+                <video src="https://files.theneil.zone/bsof.mp4" />
+                <Button onClick={hideVideo}>Hide?</Button>
+              </div>
             </div>
           )}
         <div>
           <h3>Dashboard</h3>
-          <h4>Device Requests</h4>
-          <Table>
-            <thead>
-              <tr>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Device</th>
-              </tr>
-            </thead>
-            <tbody>
-              {devRequests.map((req, k) => (
-                <tr key={k}>
-                  <td>{req.first}</td>
-                  <td>{req.last}</td>
-                  <td>{req.device}</td>
+          <h4>
+            <Link to="/admin/requests">Device Requests</Link>
+          </h4>
+          <div className={`${styles["table-container"]}`}>
+            <Table>
+              <thead>
+                <tr>
+                  <th>First Name</th>
+                  <th>Last Name</th>
+                  <th>Device</th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
-          <h4>Device Status</h4>
-          <Table>
-            <thead>
-              <tr>
-                <th>Device ID</th>
-                <th>Device Name</th>
-                <th>Status</th>
-                <th>Last Condition</th>
-              </tr>
-            </thead>
-            <tbody>
-              {devStatus.map((stat, k) => (
-                <tr key={k}>
-                  <td>{stat.id}</td>
-                  <td>{stat.name}</td>
-                  <td>{stat.status}</td>
-                  <td>{stat.lastCondition}</td>
+              </thead>
+              <tbody>
+                {devRequests.map((req, k) => (
+                  <tr key={k}>
+                    <td>{req.first}</td>
+                    <td>{req.last}</td>
+                    <td>{req.device}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </div>
+          <h4>
+            <Link to="/admin/device">Device Status</Link>
+          </h4>
+          <div className={`${styles["table-container"]}`}>
+            <Table>
+              <thead>
+                <tr>
+                  <th>Device ID</th>
+                  <th>Device Name</th>
+                  <th>Status</th>
+                  <th>Last Condition</th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
+              </thead>
+              <tbody>
+                {devStatus.map((stat, k) => (
+                  <tr key={k}>
+                    <td>{stat.id}</td>
+                    <td>{stat.name}</td>
+                    <td>{stat.status}</td>
+                    <td>{stat.lastCondition}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </div>
         </div>
       </div>
     </Container>
@@ -118,4 +136,3 @@ function Panel() {
 }
 
 export default Panel;
-
