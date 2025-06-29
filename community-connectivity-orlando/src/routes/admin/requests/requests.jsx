@@ -73,8 +73,8 @@ function Requests() {
 
       <div className="requests-search mb-3">
         <input
-          type="text"
-          className="form-control"
+          type="search"
+          className="form-control search-bar"
           placeholder="Search requests"
           value={search}
           onChange={(e) => setSearch(e.target.value)}

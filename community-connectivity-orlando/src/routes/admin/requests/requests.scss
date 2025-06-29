@@ -1,5 +1,5 @@
 .requests-container {
-    background-color: #0d1b2a;
+    background-color:  #102133;
     min-height: 100vh;
     color: white;
     padding: 20px;
@@ -32,6 +32,18 @@
     color: #17a2b8;
     margin-top: 1rem;
   }
+  
+  input[type="search"] {
+  background-color: white !important;  
+  color: black !important;             
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+}
+
+input[type="search"]::placeholder {
+  color: #666;
+}
+
   
   .table-custom {
     background-color: #001f3f;
