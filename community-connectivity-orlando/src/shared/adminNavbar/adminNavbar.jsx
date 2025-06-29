@@ -41,7 +41,6 @@ export default function AdminNavbar() {
           </Navbar.Collapse>
         </Container>
       </Navbar>
-      <div>{JSON.stringify(user)}</div>
       <Outlet />
     </div>
   );
