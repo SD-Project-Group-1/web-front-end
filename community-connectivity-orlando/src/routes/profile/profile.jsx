@@ -1,19 +1,41 @@
-import React from "react";
+import { useContext } from "react";
 
 import styles from "./profile.module.scss";
 import { Button } from "react-bootstrap";
+import { UserContext } from "../../context/userContext";
+import { useNavigate } from "react-router-dom";
 
 function Profile() {
+  const { user, setUser, loading } = useContext(UserContext);
+  const navigate = useNavigate();
+
+  const logout = async () => {
+    await fetch("/api/signout", { method: "POST" });
+    setUser(null);
+    navigate("/");
+  };
+
+  if (loading) {
+    return <h1>Please wait...</h1>;
+  }
+
+  if (user === null) {
+    navigate("/");
+    return;
+  }
+
   return (
     <div className={`${styles.container}`}>
       <div className={`${styles["user-card"]}`}>
-        <h1>Real Name</h1>
-        <p>UserID: 44345</p>
-        <p>(000) 000-0000</p>
-        <p>joeshmoe@gmail.com</p>
-        <p>Age: 22</p>
+        <h1>{user.first_name} {user.last_name}</h1>
+        <p>UserID: {user.id}</p>
+        <p>{user.phone}</p>
+        <p>{user.email}</p>
+        <p>Age: {user.dob}</p>
         <address>
-          1111 Generic st,<br />Winter Park,<br />424242
+          {user.street_address},<br />
+          {user.city},<br />
+          {user.zip_code}
         </address>
       </div>
       <div className={`${styles["user-fields"]}`}>
@@ -22,27 +44,27 @@ function Profile() {
           <div className={`${styles["data-fields"]}`}>
             <div className={`${styles["field"]}`}>
               <label>First name</label>
-              <input name="firstName" />
+              <input name="firstName" defaultValue={user.first_name} />
             </div>
             <div className={`${styles["field"]}`}>
               <label>Last name</label>
-              <input name="lastName" />
+              <input name="lastName" defaultValue={user.last_name} />
             </div>
             <div className={`${styles["field"]}`}>
               <label>Number</label>
-              <input name="number" type="number" />
+              <input name="number" type="number" defaultValue={user.phone} />
             </div>
             <div className={`${styles["field"]}`}>
               <label>Email</label>
-              <input name="email" type="email" />
+              <input name="email" type="email" defaultValue={user.email} />
             </div>
             <div className={`${styles["field"]}`}>
               <label>Date of Birth</label>
-              <input name="dob" type="date" />
+              <input name="dob" type="date" defaultValue={new Date(user.dob)} />
             </div>
             <div className={`${styles["field"]}`}>
               <label>Address</label>
-              <input name="address" />
+              <input name="address" defaultValue={user.street_address} />
             </div>
           </div>
           <Button>Update info</Button>
@@ -50,7 +72,7 @@ function Profile() {
         <div className={`${styles.actions}`}>
           <h1>Account Actions</h1>
           <Button>Reset Password</Button>
-          <Button>Logout</Button>
+          <Button onClick={logout}>Logout</Button>
           <Button>Delete Account</Button>
         </div>
       </div>

@@ -1,8 +1,11 @@
 import { useState } from "react";
-import { Button, Card, Form, Row, Col } from "react-bootstrap";
+import { Button, Card, Col, Form, Row } from "react-bootstrap";
 import "./signup.scss";
+import { useNavigate } from "react-router-dom";
 
 function Signup() {
+  const navigate = useNavigate();
+
   const [nextFormFlag, setNextFormFlag] = useState(false);
   const [formFName, setFormFName] = useState("");
   const [formLName, setFormLName] = useState("");
@@ -16,13 +19,13 @@ function Signup() {
   const [formState, setFormState] = useState("");
   const [formZip, setFormZip] = useState("");
 
-  const handleSubmitFirst = (e) => {
+  const handleSubmitFirst = async (e) => {
     e.preventDefault();
     console.log("page submitted");
     setNextFormFlag(true);
   };
 
-  const handleSubmitSecond = (e) => {
+  const handleSubmitSecond = async (e) => {
     e.preventDefault();
     console.log("page submitted");
     const formObject = {
@@ -36,10 +39,38 @@ function Signup() {
       address2: formAddress2,
       city: formCity,
       state: formState,
-      zip: formZip
+      zip: formZip,
+    };
+
+    const payload = {
+      email: formObject.email,
+      password: formObject.password,
+      first_name: formObject.firstName,
+      last_name: formObject.lastName,
+      phone: formObject.phone,
+      street_address: formObject.address1,
+      city: formObject.city,
+      state: formObject.state,
+      zip_code: formObject.zip,
+      dob: formObject.dob,
+    };
+
+    console.log(payload);
+
+    const response = await fetch(
+      `api/user/create`,
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+        headers: [["Content-Type", "application/json"]],
+      },
+    );
+
+    if (response.ok) {
+      console.log("Yippeeeee");
+      navigate("/signin");
     }
-    console.log(formObject)
-  }
+  };
 
   return (
     <div>
@@ -180,7 +211,7 @@ function Signup() {
               </Row>
               <Row>
                 <Col>
-                <Form.Group className="mb-3">
+                  <Form.Group className="mb-3">
                     <Form.Label className="white">City</Form.Label>
                     <Form.Control
                       type="text"
@@ -191,7 +222,7 @@ function Signup() {
                   </Form.Group>
                 </Col>
                 <Col>
-                <Form.Group className="mb-3">
+                  <Form.Group className="mb-3">
                     <Form.Label className="white">State</Form.Label>
                     <Form.Control
                       type="text"
@@ -204,7 +235,7 @@ function Signup() {
               </Row>
               <Row>
                 <Col>
-                <Form.Group className="mb-3">
+                  <Form.Group className="mb-3">
                     <Form.Label className="white">Zip Code</Form.Label>
                     <Form.Control
                       type="text"

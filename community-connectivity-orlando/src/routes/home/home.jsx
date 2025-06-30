@@ -1,31 +1,33 @@
 import styles from "./home.module.scss";
 import SignedOut from "./components/signedOut";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useEffect } from "react";
 import UserNavbar from "./components/userNavbar";
 import SignedIn from "./components/signedIn";
 import Request from "./components/request";
+import { UserContext } from "../../context/userContext";
 
 function Home() {
   const [signedIn, setSignedIn] = useState(false);
   const [request, setRequest] = useState(null);
+  const [afterEl, setAfterEl] = useState(<SignedOut />);
+
+  const { user, loading } = useContext(UserContext);
 
   useEffect(() => {
     //Set signed in from cookies / API
-    setSignedIn(false);
+    setSignedIn(user !== null);
     //Set request from API
     setRequest(null);
-  }, []);
 
-  let afterEl;
-
-  if (signedIn && request) {
-    afterEl = <Request />;
-  } else if (signedIn) {
-    afterEl = <SignedIn />;
-  } else {
-    afterEl = <SignedOut />;
-  }
+    if (user && request) {
+      setAfterEl(<Request />);
+    } else if (user) {
+      setAfterEl(<SignedIn />);
+    } else {
+      setAfterEl(<SignedOut />);
+    }
+  }, [loading, user, request]);
 
   return (
     <div className={`${styles.container}`}>

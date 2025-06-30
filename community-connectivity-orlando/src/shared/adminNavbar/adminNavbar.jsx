@@ -1,11 +1,21 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
+import { useContext } from "react";
+import { UserContext } from "../../context/userContext";
 
 import styles from "./adminNavbar.module.scss";
 
 export default function AdminNavbar() {
+  const { user } = useContext(UserContext);
+  const navigate = useNavigate();
+
+  if (!user) {
+    navigate("/");
+    return;
+  }
+
   return (
     <div>
       <Navbar expand="lg" className={`${styles.navbar}`}>

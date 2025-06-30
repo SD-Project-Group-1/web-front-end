@@ -26,6 +26,8 @@ function App() {
       <Route path="/profile" element={<Profile />} />
 
       {/* Admin Routes */}
+      <Route path="admin/login" element={<AdminLogin />} />
+      {/* Adming login can't have the admin navbar lol */}
       <Route path="admin" element={<AdminNavbar />}>
         <Route index element={<Panel />} />
         <Route path="data" element={<Data />} />
@@ -33,7 +35,6 @@ function App() {
         <Route path="profile" element={<AdminProfile />} />
         <Route path="profiles" element={<Profiles />} />
         <Route path="requests" element={<Requests />} />
-        <Route path="login" element={<AdminLogin />} />
       </Route>
     </Routes>
   );
