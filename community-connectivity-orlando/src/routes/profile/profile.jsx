@@ -56,8 +56,6 @@ function Profile() {
         return;
       }
 
-      alert("AGGG");
-
       setToUserProfile(userId);
     } else {
       setProfileOf(user);
