@@ -18,7 +18,7 @@ export default function AdminProfile({ admin }) {
     <div className={`${styles.container}`}>
       <div className={`${styles["user-card"]}`}>
         <h1>{admin.first_name} {admin.last_name}</h1>
-        <p>UserID: {admin.id}</p>
+        <p>AdminID: {admin.admin_id}</p>
         <p>{admin.email}</p>
       </div>
       <div className={`${styles["user-fields"]}`}>

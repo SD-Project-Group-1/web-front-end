@@ -6,11 +6,11 @@ import UserProfile from "./components/userProfile";
 import AdminProfile from "./components/adminProfile";
 
 function Profile() {
-  const { user, setUser, loading } = useContext(UserContext);
+  const { user, loading } = useContext(UserContext);
   const navigate = useNavigate();
 
   if (loading) {
-    return <h1>Please wait...</h1>;
+    return <></>;
   }
 
   if (user === null) {
@@ -18,10 +18,10 @@ function Profile() {
     return;
   }
 
-  if (user.role && user.role !== "user") {
-    return <UserProfile user={user} />;
-  } else {
+  if (user?.role && user.role !== "user") {
     return <AdminProfile admin={user} />;
+  } else {
+    return <UserProfile user={user} />;
   }
 }
 
