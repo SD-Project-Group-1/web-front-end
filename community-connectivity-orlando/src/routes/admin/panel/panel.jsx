@@ -12,7 +12,28 @@ function Panel() {
   useEffect(() => {
     setHideVid(sessionStorage.getItem("hideVid") === "true");
     populateFakeData();
+    populateData();
   }, []);
+
+  const populateData = async () => {
+    try {
+      const responce = await fetch("/api/devices/getall", {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const json = responce.json();
+      if (!responce.ok) {
+        console.log("An error has occured");
+      }
+      console.log(json);
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   const populateFakeData = () => {
     const fakeRequests = [
