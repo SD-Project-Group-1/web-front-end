@@ -23,10 +23,14 @@ function App() {
       <Route path="/signup" element={<Signup />} />
       <Route path="/login" element={<Login />} />
       <Route path="/request" element={<Request />} />
+<<<<<<< HEAD
 
       <Route path="/profile" element={<Profile />} />
       <Route path="/admin/profile/:adminId" element={<Profile />} />
       <Route path="/profile/:userId" element={<Profile />} />
+=======
+      <Route path="/profile" element={<Profile />} />
+>>>>>>> 04829cb (Added Functionality to Request Device Form)
 
       {/* Admin Routes */}
       <Route path="admin/login" element={<AdminLogin />} />
