@@ -68,11 +68,7 @@ function Signup() {
 
     if (response.ok) {
       console.log("Yippeeeee");
-<<<<<<< HEAD
-      navigate("/signin");
-=======
       navigate("/login");
->>>>>>> 04829cb (Added Functionality to Request Device Form)
     }
   };
 
