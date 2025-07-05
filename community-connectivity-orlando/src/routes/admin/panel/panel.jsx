@@ -25,11 +25,22 @@ function Panel() {
         },
       });
 
-      const json = responce.json();
       if (!responce.ok) {
         console.log("An error has occured");
       }
+
+      const json = await responce.json();
       console.log(json);
+      let statusData = [];
+      for (let i = 0; i < json.length; i++) {
+        statusData[i] = {
+          id: json[i].serial_number,
+          name: json[i].brand,
+          status: "N/A",
+          lastCondition: "N/A",
+        };
+      }
+      setDevStatus(statusData);
     } catch (err) {
       console.log(err);
     }
