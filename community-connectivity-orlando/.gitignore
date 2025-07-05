@@ -1,23 +1,36 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
 /node_modules
+/frontend/node_modules
 /.pnp
 .pnp.js
 
-# testing
-/coverage
-
-# production
+# build and output
 /build
+/frontend/build
+/dist
+.next/
+coverage/
+prisma/generated
+prisma/migrations/
+.prisma/
 
-# misc
-.DS_Store
+# environment variables
+.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
+# logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# SQLite
+*.sqlite
+*.sqlite-journal
+
+# IDEs and system files
+.vscode/
+.DS_Store
+Thumbs.db

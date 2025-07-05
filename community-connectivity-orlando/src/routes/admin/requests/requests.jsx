@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Button, Modal } from "react-bootstrap";
 import "./requests.scss";
-import { Link } from "react-router-dom";
 
 function Requests() {
   const [search, setSearch] = useState("");

@@ -68,7 +68,7 @@ function Signup() {
 
     if (response.ok) {
       console.log("Yippeeeee");
-      navigate("/signin");
+      navigate("/login");
     }
   };
 
