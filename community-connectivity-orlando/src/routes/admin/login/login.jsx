@@ -11,28 +11,36 @@ function Login() {
   const { setUser } = useContext(UserContext);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const payload = {
-      email,
-      password,
-    };
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    const response = await fetch(
-      `/api/admin/signin`,
-      {
-        method: "POST",
-        body: JSON.stringify(payload),
-        headers: [["Content-Type", "application/json"]],
-      },
-    );
-
-    if (response.ok) {
-      const data = await response.json();
-      setUser(data.admin);
-      navigate("/admin");
-    }
+  const payload = {
+    email,
+    password,
   };
+
+  try {
+    const response = await fetch("/api/admin/signin", {
+      method: "POST",
+      body: JSON.stringify(payload),
+      headers: [["Content-Type", "application/json"]],
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Admin login failed:", errorData.message || response.statusText);
+      alert("Login failed: " + (errorData.message || "Invalid credentials"));
+      return;
+    }
+
+    const data = await response.json();
+    setUser(data.admin);
+    navigate("/admin");
+  } catch (err) {
+    console.error("Network or server error:", err);
+    alert("Server error occurred. Please try again later.");
+  }
+};
 
   return (
     <div className="login-wrapper">
