@@ -6,7 +6,6 @@ import UserNavbar from "./components/userNavbar";
 import SignedIn from "./components/signedIn";
 import Request from "./components/request";
 import { UserContext } from "../../context/userContext";
-import { useNavigate } from "react-router-dom";
 
 function Home() {
   const [signedIn, setSignedIn] = useState(false);
@@ -14,7 +13,6 @@ function Home() {
   const [afterEl, setAfterEl] = useState(<SignedOut />);
 
   const { user, loading } = useContext(UserContext);
-  const navigate = useNavigate();
 
   useEffect(() => {
     //Set signed in from cookies / API
@@ -30,15 +28,6 @@ function Home() {
       setAfterEl(<SignedOut />);
     }
   }, [loading, user, request]);
-
-  if (loading) {
-    return <></>;
-  }
-
-  if (user?.role && user.role !== "user") {
-    navigate("/admin");
-    return;
-  }
 
   return (
     <div className={`${styles.container}`}>
