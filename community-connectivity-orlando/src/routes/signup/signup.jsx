@@ -57,20 +57,25 @@ function Signup() {
 
     console.log(payload);
 
-    const response = await fetch(
-      `api/user/create`,
-      {
-        method: "POST",
-        body: JSON.stringify(payload),
-        headers: [["Content-Type", "application/json"]],
-      },
-    );
+    try {
+  const response = await fetch("/api/user/create", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
 
-    if (response.ok) {
-      console.log("Yippeeeee");
-      navigate("/login");
-    }
-  };
+  if (!response.ok) {
+    const errorData = await response.json();
+    console.error("Signup failed:", errorData.message || response.statusText);
+    alert("Signup failed: " + (errorData.message || "Unexpected error"));
+    return;
+  }
+
+  navigate("/login");
+} catch (err) {
+  console.error("Network or server error:", err);
+  alert("Server error occurred. Please try again later.");
+}
 
   return (
     <div>
@@ -263,6 +268,7 @@ function Signup() {
       </div>
     </div>
   );
+}
 }
 
 export default Signup;
