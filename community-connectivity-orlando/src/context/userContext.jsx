@@ -11,15 +11,7 @@ export const UserProvider = ({ children }) => {
   const getMe = async () => {
     try {
       const response = await fetch("/api/me");
-
-      if (!response.ok) {
-        setUser(null);
-        return;
-      }
-
-      const data = await response.json();
-
-      setUser(data.admin ? data.admin : data.userPayload);
+      setUser(response.ok ? await response.json() : null);
     } catch (err) {
       setUser(null);
     } finally {
