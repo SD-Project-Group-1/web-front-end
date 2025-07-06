@@ -1,91 +1,50 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./manage.scss";
 
 function Manage() {
   const [showModal, setShowModal] = useState(false);
-  const [devices] = useState([
-    {
-      serial: "92928383",
-      type: "Tablet",
-      brand: "Apple",
-      model: "iPad 3",
-      location: "2323 Ale St",
-      status: "Available",
-      condition: "Good",
-    },
-    {
-      serial: "85776125",
-      type: "Tablet",
-      brand: "Samsung",
-      model: "Tab S9",
-      location: "110 Hero Rd",
-      status: "Checked out",
-      condition: "Dented back",
-    },
-    {
-      serial: "12875167",
-      type: "Laptop",
-      brand: "Lenovo",
-      model: "y77",
-      location: "20 Forsyth In",
-      status: "Scheduled",
-      condition: "Good",
-    },
-    {
-      serial: "92928383",
-      type: "Tablet",
-      brand: "Apple",
-      model: "iPad 3",
-      location: "2323 Ale St",
-      status: "Available",
-      condition: "Good",
-    },
-    {
-      serial: "85776125",
-      type: "Tablet",
-      brand: "Samsung",
-      model: "Tab S9",
-      location: "110 Hero Rd",
-      status: "Checked out",
-      condition: "Dented back",
-    },
-    {
-      serial: "12875167",
-      type: "Laptop",
-      brand: "Lenovo",
-      model: "y77",
-      location: "20 Forsyth In",
-      status: "Scheduled",
-      condition: "Good",
-    },
-    {
-      serial: "92928383",
-      type: "Tablet",
-      brand: "Apple",
-      model: "iPad 3",
-      location: "2323 Ale St",
-      status: "Available",
-      condition: "Good",
-    },
-    {
-      serial: "85776125",
-      type: "Tablet",
-      brand: "Samsung",
-      model: "Tab S9",
-      location: "110 Hero Rd",
-      status: "Checked out",
-      condition: "Dented back",
-    },
-    {
-      serial: "12875167",
-      type: "Laptop",
-      brand: "Lenovo",
-      model: "y77",
-      location: "20 Forsyth In",
-      status: "Scheduled",
-      condition: "Good",
-    },
-  ]);
+  const [devices, setDevices] = useState([]);
+
+  useEffect(() => {
+    requestData();
+  }, []);
+
+  const requestData = async () => {
+    try {
+      const responce = await fetch(
+        `/api/devices/getall`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      if (!responce.ok) {
+        console.log("An error has occured");
+      }
+
+      const json = await responce.json();
+      let deviceData = [];
+      // Add logic to make the status more readable EG remove the underscores
+      for (let i = 0; i < json.length; i++) {
+        deviceData[i] = {
+          serial: json[i].serial_number,
+          type: json[i].type,
+          brand: json[i].brand,
+          model: `${json[i].make} ${json[i].model}`,
+          location: json[i].location.street_address,
+          status: json[i].borrow[0].borrow_status,
+          condition: json[i].borrow[0].device_return_condition,
+        };
+      }
+      setDevices(deviceData);
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   return (
     <div
@@ -95,8 +54,8 @@ function Manage() {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h2 className="manage-title mt-4">Device Management</h2>
         <button className="add-device-btn" onClick={() => setShowModal(true)}>
-  Add Device
-</button>
+          Add Device
+        </button>
       </div>
 
       <div className="table-container">
@@ -127,17 +86,40 @@ function Manage() {
           </tbody>
         </table>
       </div>
-       {/* Modal */}
+      {/* Modal */}
       {showModal && (
         <div className="simple-modal-backdrop">
           <div className="simple-modal">
             <h5 className="modal-title text-info">Device Approval</h5>
-            <input type="text" placeholder="Serial #" className="form-control mb-2" />
-            <input type="text" placeholder="Type" className="form-control mb-2" />
-            <input type="text" placeholder="Brand" className="form-control mb-2" />
-            <input type="text" placeholder="Model" className="form-control mb-2" />
-            <input type="text" placeholder="Location" className="form-control mb-3" />
-            <button className="add-device-submit-btn" onClick={() => setShowModal(false)}>
+            <input
+              type="text"
+              placeholder="Serial #"
+              className="form-control mb-2"
+            />
+            <input
+              type="text"
+              placeholder="Type"
+              className="form-control mb-2"
+            />
+            <input
+              type="text"
+              placeholder="Brand"
+              className="form-control mb-2"
+            />
+            <input
+              type="text"
+              placeholder="Model"
+              className="form-control mb-2"
+            />
+            <input
+              type="text"
+              placeholder="Location"
+              className="form-control mb-3"
+            />
+            <button
+              className="add-device-submit-btn"
+              onClick={() => setShowModal(false)}
+            >
               Add Device
             </button>
           </div>
