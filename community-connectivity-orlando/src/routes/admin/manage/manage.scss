@@ -4,11 +4,12 @@
   color: #00ffff;
   margin-bottom: 1rem;
 }
+
 .table-custom {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  background-color: #0e1c2f; 
+  background-color: #0e1c2f;
   margin-top: 1rem;
   color: white;
   font-size: 1rem;
@@ -43,8 +44,8 @@
   font-size: 2rem;
   color: #0ff;
 }
-  
- .add-device-btn {
+
+.add-device-btn {
   background-color: #ffd700;
   color: black;
   font-weight: bold;
@@ -55,9 +56,9 @@
   border-radius: 10px;
   font-size: 1.4rem;
   white-space: nowrap;
-  
-   span {
-    border-radius: 5px; 
+
+  span {
+    border-radius: 5px;
     padding: 2px 6px;
     display: inline;
   }
@@ -80,7 +81,7 @@
   background-color: #222;
   padding: 2rem;
   border-radius: 10px;
-  width: 300px;
+  width: 450px;
   text-align: center;
 }
 
@@ -95,9 +96,9 @@
   padding: 0.5rem;
   color: black;
 
-&::placeholder {
+  &::placeholder {
     color: black;
-}
+  }
 }
 
 .add-device-submit-btn {
@@ -109,4 +110,3 @@
   width: 100%;
   border-radius: 5px;
 }
-

@@ -1,12 +1,21 @@
 import React, { useEffect, useState } from "react";
+import { Button, Form, Modal } from "react-bootstrap";
 import "./manage.scss";
 
 function Manage() {
   const [showModal, setShowModal] = useState(false);
   const [devices, setDevices] = useState([]);
+  const [locations, setLocations] = useState([]);
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const [serial, setSerial] = useState("");
+  const [type, setType] = useState("");
+  const [brand, setBrand] = useState("");
+  const [model, setModel] = useState("");
+  const [make, setMake] = useState("");
 
   useEffect(() => {
     requestData();
+    requestLocations();
   }, []);
 
   const requestData = async () => {
@@ -28,22 +37,80 @@ function Manage() {
 
       const json = await responce.json();
       let deviceData = [];
-      // Add logic to make the status more readable EG remove the underscores
       for (let i = 0; i < json.length; i++) {
+        const borrowInfo = json[i].borrow && json[i].borrow.length > 0
+          ? json[i].borrow[0]
+          : null;
+
         deviceData[i] = {
           serial: json[i].serial_number,
           type: json[i].type,
           brand: json[i].brand,
           model: `${json[i].make} ${json[i].model}`,
           location: json[i].location.street_address,
-          status: json[i].borrow[0].borrow_status,
-          condition: json[i].borrow[0].device_return_condition,
+          status: borrowInfo?.borrow_status || "N/A",
+          condition: borrowInfo?.device_return_condition || "N/A",
         };
       }
       setDevices(deviceData);
     } catch (err) {
       console.log(err);
     }
+  };
+
+  const requestLocations = async () => {
+    try {
+      const response = await fetch("/api/locations/getall", {
+        method: "GET",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        console.log("Error fetching locations");
+        return;
+      }
+
+      const json = await response.json();
+      setLocations(json);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const response = await fetch("/api/devices/create", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          serial_number: serial,
+          type,
+          brand,
+          model,
+          location_id: parseInt(selectedLocation),
+          make,
+        }),
+      });
+      if (!response.ok) {
+        console.log(response.json);
+        alert("Failed to add device.");
+        return;
+      }
+    } catch (err) {
+      console.log(err);
+    }
+    requestData();
+    setShowModal(false);
+    setSerial("");
+    setType("");
+    setBrand("");
+    setModel("");
+    setMake("");
+    setSelectedLocation("");
   };
 
   return (
@@ -86,45 +153,89 @@ function Manage() {
           </tbody>
         </table>
       </div>
-      {/* Modal */}
-      {showModal && (
-        <div className="simple-modal-backdrop">
-          <div className="simple-modal">
-            <h5 className="modal-title text-info">Device Approval</h5>
-            <input
-              type="text"
-              placeholder="Serial #"
-              className="form-control mb-2"
-            />
-            <input
-              type="text"
-              placeholder="Type"
-              className="form-control mb-2"
-            />
-            <input
-              type="text"
-              placeholder="Brand"
-              className="form-control mb-2"
-            />
-            <input
-              type="text"
-              placeholder="Model"
-              className="form-control mb-2"
-            />
-            <input
-              type="text"
-              placeholder="Location"
-              className="form-control mb-3"
-            />
-            <button
-              className="add-device-submit-btn"
-              onClick={() => setShowModal(false)}
-            >
-              Add Device
-            </button>
-          </div>
-        </div>
-      )}
+      <Modal
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        centered
+        contentClassName="simple-modal"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title className="modal-title text-info">
+            Device Approval
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-2">
+              <Form.Control
+                className="form-control"
+                type="text"
+                placeholder="Serial #"
+                value={serial}
+                onChange={(e) => setSerial(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-2">
+              <Form.Control
+                className="form-control"
+                type="text"
+                placeholder="Type"
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-2">
+              <Form.Control
+                className="form-control"
+                type="text"
+                placeholder="Brand"
+                value={brand}
+                onChange={(e) => setBrand(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-2">
+              <Form.Control
+                className="form-control"
+                type="text"
+                placeholder="Make"
+                value={make}
+                onChange={(e) => setMake(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-2">
+              <Form.Control
+                className="form-control"
+                type="text"
+                placeholder="Model"
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Select
+                className="form-control"
+                value={selectedLocation}
+                onChange={(e) => setSelectedLocation(e.target.value)}
+              >
+                <option value="">Select Location</option>
+                {locations.map((loc) => (
+                  <option key={loc.location_id} value={loc.location_id}>
+                    {loc.location_nickname || loc.street_address}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <button
+            className="add-device-submit-btn"
+            onClick={handleSubmit}
+          >
+            Add Device
+          </button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }
