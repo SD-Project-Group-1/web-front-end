@@ -1,24 +1,23 @@
 import React, { useEffect, useState } from "react";
 import {
   Button,
-  Container,
-  Table,
-  Modal,
-  Form,
-  Row,
-  Col,
   Card,
+  Col,
+  Container,
+  Form,
+  Modal,
+  Row,
+  Table,
 } from "react-bootstrap";
 import { Bar } from "react-chartjs-2";
 import {
-  Chart as ChartJS,
   BarElement,
   CategoryScale,
+  Chart as ChartJS,
+  Legend,
   LinearScale,
   Tooltip,
-  Legend,
 } from "chart.js";
-import UserNavbar from "../../home/components/userNavbar";
 import styles from "../../home/home.module.scss";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
@@ -43,21 +42,23 @@ export default function Profile() {
     role: "staff",
   });
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setIsLoading(true);
-        const res = await fetch("/api/user/getall", {
-          credentials: "include",
-        });
-        const data = await res.json();
-        setUsers(data);
-      } catch (err) {
-        console.error("Failed to fetch users");
-      } finally {
-        setIsLoading(false);
+  const fetchUsers = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch("/api/user/getall");
+      const data = await res.json();
+      for (const user of data) {
+        user.role = "user";
       }
-    };
+      setUsers(data);
+    } catch (err) {
+      console.error("Failed to fetch users");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchUsers();
   }, []);
 
@@ -68,8 +69,8 @@ export default function Profile() {
     const matchesName = `${u.first_name} ${u.last_name}`
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
-    const matchesZIP =
-      zipFilter === "All" || u.zip_code?.toString() === zipFilter;
+    const matchesZIP = zipFilter === "All" ||
+      u.zip_code?.toString() === zipFilter;
     const matchesRole = roleFilter === "All" || u.role === roleFilter;
     return matchesName && matchesZIP && matchesRole;
   });
@@ -81,8 +82,7 @@ export default function Profile() {
   }, {});
 
   const incompleteUsers = users.filter(
-    (u) =>
-      !u.first_name || !u.last_name || !u.zip_code || !u.email || !u.city
+    (u) => !u.first_name || !u.last_name || !u.zip_code || !u.email || !u.city,
   );
 
   const duplicates = {
@@ -128,7 +128,7 @@ export default function Profile() {
 
   const exportZipSummary = () => {
     const rows = Object.entries(zipCounts).map(
-      ([zip, count]) => `"${zip}","${count}"`
+      ([zip, count]) => `"${zip}","${count}"`,
     );
     const csv = ["ZIP,Count", ...rows].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
@@ -175,7 +175,6 @@ export default function Profile() {
 
   return (
     <div className={styles["admin-page"]}>
-      <UserNavbar signedIn />
       <Container className="mt-4">
         <div className="d-flex flex-column flex-md-row gap-2 justify-content-between align-items-start align-items-md-center mb-3">
           <h2 className={styles["page-title"]}>Profiles</h2>
@@ -212,9 +211,7 @@ export default function Profile() {
             onChange={(e) => setRoleFilter(e.target.value)}
           >
             <option value="All">All Roles</option>
-            {roles.map((role) => (
-              <option key={role}>{role}</option>
-            ))}
+            {roles.map((role) => <option key={role}>{role}</option>)}
           </Form.Select>
           <Form.Select
             value={viewMode}
@@ -226,98 +223,98 @@ export default function Profile() {
           </Form.Select>
         </Form>
 
-        {isLoading ? (
-          <div className="text-light text-center my-4">
-            <span className="spinner-border text-warning"></span>
-            <p>Loading users...</p>
-          </div>
-        ) : (
-          <>
-            {viewMode === "group" && (
-              <div className="mb-4">
-                <h5 className="text-light">Users by ZIP</h5>
-                <ul className="text-light">
-                  {Object.entries(zipCounts).map(([zip, count]) => (
-                    <li key={zip}>
-                      <strong>{zip}</strong>: {count}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {viewMode === "chart" && (
-              <Card className="bg-dark text-white mb-4">
-                <Card.Body>
-                  <h5>ZIP Code Distribution</h5>
-                  <Bar data={zipBarData} />
-                </Card.Body>
-              </Card>
-            )}
-
-            {viewMode === "table" && (
-              <div className="table-responsive">
-                <Table striped bordered hover variant="dark">
-                  <thead>
-                    <tr>
-                      <th>User ID</th>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>ZIP</th>
-                      <th>Role</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredUsers.map((user) => (
-                      <tr
-                        key={user.user_id}
-                        className={
-                          !user.first_name ||
-                          !user.last_name ||
-                          !user.zip_code ||
-                          !user.city
-                            ? "table-warning"
-                            : ""
-                        }
-                      >
-                        <td>{user.user_id}</td>
-                        <td>{user.first_name} {user.last_name}</td>
-                        <td>{user.email}</td>
-                        <td>{user.zip_code}</td>
-                        <td>{user.role || "N/A"}</td>
-                        <td>
-                          <Button
-                            size="sm"
-                            variant="outline-warning"
-                            onClick={() => {
-                              setSelectedUser(user);
-                              setNewZip(user.zip_code || "");
-                              setNewLocation(user.city || "");
-                              setShowReassignModal(true);
-                            }}
-                          >
-                            Reassign
-                          </Button>{" "}
-                          <Button
-                            size="sm"
-                            variant="outline-danger"
-                            onClick={() => {
-                              setSelectedUser(user);
-                              setShowDeleteModal(true);
-                            }}
-                          >
-                            Delete
-                          </Button>
-                        </td>
-                      </tr>
+        {isLoading
+          ? (
+            <div className="text-light text-center my-4">
+              <span className="spinner-border text-warning"></span>
+              <p>Loading users...</p>
+            </div>
+          )
+          : (
+            <>
+              {viewMode === "group" && (
+                <div className="mb-4">
+                  <h5 className="text-light">Users by ZIP</h5>
+                  <ul className="text-light">
+                    {Object.entries(zipCounts).map(([zip, count]) => (
+                      <li key={zip}>
+                        <strong>{zip}</strong>: {count}
+                      </li>
                     ))}
-                  </tbody>
-                </Table>
-              </div>
-            )}
-          </>
-        )}
+                  </ul>
+                </div>
+              )}
+
+              {viewMode === "chart" && (
+                <Card className="bg-dark text-white mb-4">
+                  <Card.Body>
+                    <h5>ZIP Code Distribution</h5>
+                    <Bar data={zipBarData} />
+                  </Card.Body>
+                </Card>
+              )}
+
+              {viewMode === "table" && (
+                <div className="table-responsive">
+                  <Table striped bordered hover variant="dark">
+                    <thead>
+                      <tr>
+                        <th>User ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>ZIP</th>
+                        <th>Role</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredUsers.map((user) => (
+                        <tr
+                          key={user.user_id}
+                          className={!user.first_name ||
+                            !user.last_name ||
+                            !user.zip_code ||
+                            !user.city
+                            ? "table-warning"
+                            : ""}
+                        >
+                          <td>{user.user_id}</td>
+                          <td>{user.first_name} {user.last_name}</td>
+                          <td>{user.email}</td>
+                          <td>{user.zip_code}</td>
+                          <td>{user.role || "N/A"}</td>
+                          <td>
+                            <Button
+                              size="sm"
+                              variant="outline-warning"
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setNewZip(user.zip_code || "");
+                                setNewLocation(user.city || "");
+                                setShowReassignModal(true);
+                              }}
+                            >
+                              Reassign
+                            </Button>{" "}
+                            <Button
+                              size="sm"
+                              variant="outline-danger"
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setShowDeleteModal(true);
+                              }}
+                            >
+                              Delete
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                </div>
+              )}
+            </>
+          )}
       </Container>
 
       {/* Delete Modal */}
@@ -343,7 +340,10 @@ export default function Profile() {
       </Modal>
 
       {/* Reassign Modal */}
-      <Modal show={showReassignModal} onHide={() => setShowReassignModal(false)}>
+      <Modal
+        show={showReassignModal}
+        onHide={() => setShowReassignModal(false)}
+      >
         <Modal.Header closeButton>
           <Modal.Title>Reassign ZIP & Location</Modal.Title>
         </Modal.Header>

@@ -1,8 +1,8 @@
-import { Button } from "react-bootstrap";
 import styles from "../profile.module.scss";
 import { useContext } from "react";
 import { UserContext } from "../../../context/userContext";
 import { useNavigate } from "react-router-dom";
+import { Button } from "react-bootstrap";
 
 export default function UserProfile({ user }) {
   const navigate = useNavigate();
@@ -21,7 +21,10 @@ export default function UserProfile({ user }) {
         <p>UserID: {user.id}</p>
         <p>{user.phone}</p>
         <p>{user.email}</p>
-        <p>Age: {user.dob}</p>
+        <p>
+          Age: {new Date(Date.now()).getFullYear() -
+            new Date(user.dob).getFullYear()}
+        </p>
         <address>
           {user.street_address},<br />
           {user.city},<br />

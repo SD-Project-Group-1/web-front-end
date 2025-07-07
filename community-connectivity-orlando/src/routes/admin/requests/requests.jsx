@@ -1,60 +1,69 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Modal } from "react-bootstrap";
 import "./requests.scss";
+import CustomTable from "../../../components/table/table";
 
 function Requests() {
-  const [search, setSearch] = useState("");
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const requests = [
-    {
-      first: "Larry",
-      last: "Hinderson",
-      date: "06/30/2025",
-      location: "Winter Park",
-      device: "Tablet",
-      serial: "001",
-    },
-    {
-      first: "John",
-      last: "Smith",
-      date: "06/30/2025",
-      location: "Winter Spring",
-      device: "Laptop",
-      serial: "-",
-    },
-    {
-      first: "Cid",
-      last: "Kagenou",
-      date: "06/30/2025",
-      location: "Oviedo",
-      device: "Tablet",
-      serial: "099",
-    },
-    {
-      first: "Joe",
-      last: "Shmoe",
-      date: "06/30/2025",
-      location: "Winter Park",
-      device: "Laptop",
-      serial: "055",
-    },
-    {
-      first: "Nileson",
-      last: "Velez",
-      date: "06/30/2025",
-      location: "Winter Spring",
-      device: "Tablet",
-      serial: "102",
-    },
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [query, setQuery] = useState("");
+
+  const paging = {
+    enabled: true,
+    page, pageSize, setPage, setPageSize
+  };
+
+  const columns = [
+    { text: "First Name", dataField: "first" },
+    { text: "Last Name", dataField: "last" },
+    { text: "Check Out", dataField: "borrowDate" },
+    { text: "Check In", dataField: "returnDate" },
+    { text: "Device", dataField: "deviceType" },
+    { text: "Device Serial", dataField: "deviceSerial" }
   ];
 
-  const filtered = requests.filter((req) =>
-    Object.values(req).some((val) =>
-      val.toLowerCase().includes(search.toLowerCase())
-    )
-  );
+  const getRequests = async () => {
+    console.log("running", query);
+    const urlParams = new URLSearchParams([["page", page], ["pageSize", pageSize]]);
+
+    if (query && query !== "") {
+      urlParams.append("q", query);
+    }
+
+    const response = await fetch(`/api/borrow/getall?${urlParams}`);
+
+    console.log(response.url);
+
+    if (!response.ok) {
+      alert("Could not get requests!");
+      console.error(response);
+      return;
+    }
+
+    const data = await response.json();
+
+    const mapped = data.map(x => ({
+      first: x.user.first_name,
+      last: x.user.last_name,
+      borrowDate: new Date(x.borrow_date).toDateString(),
+      returnDate: x.return_date ? "" : new Date(x.return_date).toDateString(),
+      location: x.device.location.location_nickname,
+      deviceType: `${x.device.brand} ${x.device.make} ${x.device.model} (${x.device.type})`,
+      deviceSerial: x.device.serial_number
+    }));
+
+    setRequests(mapped);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    getRequests();
+  }, [page, pageSize, query]);
 
   const handleRowClick = (req) => {
     setSelectedRequest(req);
@@ -66,6 +75,14 @@ function Requests() {
     setSelectedRequest(null);
   };
 
+  if (loading) {
+    return (
+      <div className="text-center text-light my-4">
+        <span className="spinner-border text-warning"></span>
+        <p>Loading requests data...</p>
+      </div>);
+  }
+
   return (
     <div className="container-fluid requests-container">
       <h2 className="requests-title">Requests</h2>
@@ -75,41 +92,12 @@ function Requests() {
           type="search"
           className="form-control search-bar"
           placeholder="Search requests"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
         />
       </div>
 
-      <div className="table-responsive">
-        <table className="table-custom">
-          <thead>
-            <tr>
-              <th>First Name</th>
-              <th>Last Name</th>
-              <th>Date</th>
-              <th>Location</th>
-              <th>Device Type</th>
-              <th>Serial #</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((req, i) => (
-              <tr
-                key={i}
-                onClick={() => handleRowClick(req)}
-                style={{ backgroundColor: "#012840", color: "white" }}
-              >
-                <td>{req.first}</td>
-                <td>{req.last}</td>
-                <td>{req.date}</td>
-                <td>{req.location}</td>
-                <td>{req.device}</td>
-                <td>{req.serial}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <CustomTable data={requests} columns={columns} paging={paging} />
 
       <Modal
         show={showModal}

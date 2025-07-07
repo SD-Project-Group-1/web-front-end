@@ -27,7 +27,7 @@ export default function SignedIn() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user_id: user.user_id,
+          user_id: user.id,
           borrow_date: pickupDateTime,
           user_location: pickupLocation,
           reason_for_borrow: reason,
@@ -40,6 +40,7 @@ export default function SignedIn() {
         console.log("Borrow record:", data);
       } else {
         const errorText = await response.text();
+        console.log(response);
         setErrorMessage(`Error: ${errorText}`);
       }
     } catch (err) {
