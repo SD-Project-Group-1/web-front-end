@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button, Modal } from "react-bootstrap";
 import "./requests.scss";
-import CustomTable from "../../../components/table/table";
+import CustomTable from "../../../components/table/customTable";
 
 function Requests() {
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -21,14 +21,82 @@ function Requests() {
   const columns = [
     { text: "First Name", dataField: "first" },
     { text: "Last Name", dataField: "last" },
+    { text: "Status", dataField: "status" },
     { text: "Check Out", dataField: "borrowDate" },
     { text: "Check In", dataField: "returnDate" },
     { text: "Device", dataField: "deviceType" },
-    { text: "Device Serial", dataField: "deviceSerial" }
+    { text: "Device Serial", dataField: "deviceSerial" },
+    {
+      text: "Actions", formatter: (row) => (
+        <>
+          <Button onClick={() => handleRowClick(row)}>EDIT</Button>
+        </>
+      )
+    }
   ];
 
+  const approveRequest = async () => {
+    const id = selectedRequest.borrow_id;
+
+    if (!id || typeof id !== "number") {
+      alert("Something went wrong! Alert a dev!");
+      console.error("Something is wrong with the request object.", selectedRequest);
+      return;
+    }
+
+    const payload = {
+      borrow_status: "Scheduled",
+      return_date: new Date(Date.now() + (14 * 24 * 60 * 60 * 1000)),
+      device_return_condition: null
+    }
+
+    const response = await fetch(`/api/borrow/update/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+      headers: [["Content-Type", "application/json"]]
+    });
+
+    if (!response.ok) {
+      alert("Something went wrong!");
+      console.error(response, await response.text());
+      return;
+    }
+
+    alert("Approved!");
+  }
+
+  const denyRequest = async () => {
+    const id = selectedRequest.borrow_id;
+
+    if (!id || typeof id !== "number") {
+      alert("Something went wrong! Alert a dev!");
+      console.error("Something is wrong with the request object.", selectedRequest);
+      return;
+    }
+
+    const payload = {
+      borrow_status: "Cancelled",
+      return_date: null,
+      device_return_condition: null
+    }
+
+    const response = await fetch(`/api/borrow/update/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+      headers: [["Content-Type", "application/json"]],
+    });
+
+    if (!response.ok) {
+      alert("Something went wrong!");
+      console.error(response, await response.text());
+      return;
+    }
+
+    alert("Cancelled!");
+  }
+
   const getRequests = async () => {
-    console.log("running", query);
+    console.log("running", page, pageSize);
     const urlParams = new URLSearchParams([["page", page], ["pageSize", pageSize]]);
 
     if (query && query !== "") {
@@ -36,8 +104,6 @@ function Requests() {
     }
 
     const response = await fetch(`/api/borrow/getall?${urlParams}`);
-
-    console.log(response.url);
 
     if (!response.ok) {
       alert("Could not get requests!");
@@ -48,6 +114,8 @@ function Requests() {
     const data = await response.json();
 
     const mapped = data.map(x => ({
+      borrow_id: x.borrow_id,
+      status: x.borrow_status?.replace("_", " ") ?? "",
       first: x.user.first_name,
       last: x.user.last_name,
       borrowDate: new Date(x.borrow_date).toDateString(),
@@ -86,7 +154,6 @@ function Requests() {
   return (
     <div className="container-fluid requests-container">
       <h2 className="requests-title">Requests</h2>
-
       <div className="requests-search mb-3">
         <input
           type="search"
@@ -97,7 +164,7 @@ function Requests() {
         />
       </div>
 
-      <CustomTable data={requests} columns={columns} paging={paging} />
+      <CustomTable data={requests} columns={columns} paging={paging} sorting={{ enabled: false }} />
 
       <Modal
         show={showModal}
@@ -131,6 +198,7 @@ function Requests() {
                 <strong>Serial #:</strong> {selectedRequest.serial}
               </p>
 
+              <label>Set Device</label>
               <input
                 type="text"
                 className="form-control my-3 search-input"
@@ -141,8 +209,8 @@ function Requests() {
         </Modal.Body>
 
         <Modal.Footer className="modal-footer-custom">
-          <Button className="modal-btn">Approve</Button>
-          <Button className="modal-btn">Deny</Button>
+          <Button className="modal-btn" onClick={approveRequest}>Approve</Button>
+          <Button className="modal-btn" onClick={denyRequest}>Deny</Button>
         </Modal.Footer>
       </Modal>
     </div>
