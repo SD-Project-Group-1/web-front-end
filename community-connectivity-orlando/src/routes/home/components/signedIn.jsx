@@ -1,6 +1,6 @@
 import styles from "../home.module.scss";
-import { Button, Alert } from "react-bootstrap";
-import { useState, useContext } from "react";
+import { Button, Alert, Container, Row } from "react-bootstrap";
+import { useState, useContext, useEffect } from "react";
 import { UserContext } from "../../../context/userContext";
 
 export default function SignedIn() {
@@ -12,6 +12,20 @@ export default function SignedIn() {
 
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [locations, setLocations] = useState([]);
+
+  const getLocations = async () => {
+    const response = await fetch("/api/locations/getall");
+
+    if (!response.ok) {
+      console.log(response, await response.text());
+      alert("Something went wrong. The request form cannot be loaded!");
+    }
+
+    setLocations(await response.json());
+    setLoading(false);
+  }
 
   const handleRequest = async () => {
     setSuccessMessage("");
@@ -19,6 +33,18 @@ export default function SignedIn() {
 
     if (!pickupLocation || !pickupDateTime || !reason) {
       setErrorMessage("All fields are required.");
+      return;
+    }
+
+    if (!locations.some(x => x.location_nickname === pickupLocation)) {
+      setErrorMessage("Please pick a valid location!");
+      return;
+    }
+
+    const date = new Date(pickupDateTime);
+
+    if (!date || date.getHours() > 17 || date.getHours() < 10 || date.valueOf() < Date.now()) {
+      setErrorMessage("Please pick a valid pickup time!");
       return;
     }
 
@@ -48,29 +74,59 @@ export default function SignedIn() {
     }
   };
 
+  useEffect(() => {
+    getLocations();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="text-center text-light my-4">
+        <span className="spinner-border text-warning"></span>
+        <p>Loading request form...</p>
+      </div>
+    );
+  }
+
   return (
     <div className={styles["signed-in"]}>
       <h2>Request Your Device</h2>
-
-      <div className={styles["request-form"]}>
-        <input
-          placeholder="Pickup Location"
-          value={pickupLocation}
-          onChange={(e) => setPickupLocation(e.target.value)}
-        />
-        <input
-          type="datetime-local"
-          placeholder="Pickup Date/Time"
-          value={pickupDateTime}
-          onChange={(e) => setPickupDateTime(e.target.value)}
-        />
-        <select value={reason} onChange={(e) => setReason(e.target.value)}>
-          <option>Job Search</option>
-          <option>School</option>
-          <option>Training</option>
-          <option>Other</option>
-        </select>
-      </div>
+      <p>
+        Please choose a time within these business hours:
+        <br />
+        Monday-Friday: 10 am to 5 pm
+      </p>
+      <Container className={styles["request-form"]}>
+        <div>
+          <input
+            list="location-options"
+            placeholder="Pickup Location"
+            value={pickupLocation}
+            onChange={(e) => setPickupLocation(e.target.value)}
+          />
+          <datalist id="location-options">
+            {locations.map((loc, i) => (
+              <option key={i} value={loc.location_nickname} />
+            ))}
+          </datalist>
+        </div>
+        <div>
+          <input
+            type="datetime-local"
+            placeholder="Pickup Date/Time"
+            value={pickupDateTime}
+            onChange={(e) => setPickupDateTime(e.target.value)}
+          />
+        </div>
+        <div className={`${styles.reason}`}>
+          <label>Reason for Request</label>
+          <select value={reason} onChange={(e) => setReason(e.target.value)}>
+            <option>Job Search</option>
+            <option>School</option>
+            <option>Training</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </Container>
 
       <Button className="mt-3" onClick={handleRequest}>
         Request
