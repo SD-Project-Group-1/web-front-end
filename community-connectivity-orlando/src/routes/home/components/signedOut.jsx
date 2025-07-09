@@ -35,7 +35,7 @@ export default function SignedOut() {
           All you need to get started is to make an account and provide some
           basic information.
         </p>
-        <Link to={"/login"}>
+        <Link to={"/signup"}>
           <Button>Sign Up</Button>
         </Link>
       </div>
