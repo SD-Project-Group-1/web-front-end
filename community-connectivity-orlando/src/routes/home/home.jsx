@@ -16,15 +16,25 @@ function Home() {
   const { user, loading } = useContext(UserContext);
   const navigate = useNavigate();
 
+  const getRequest = async () => {
+    const response = await fetch(`/api/borrow/requested/${user.id}`);
+
+    if (!response.ok) {
+      console.log(response, await response.text());
+      alert("Failed to get the request");
+      return;
+    }
+
+    setRequest(await response.json());
+  }
+
   useEffect(() => {
-    //Set signed in from cookies / API
     setSignedIn(user !== null);
-    //Set request from API
-    setRequest(null);
 
     if (user && request) {
-      setAfterEl(<Request />);
+      setAfterEl(<Request request={request} />);
     } else if (user) {
+      getRequest();
       setAfterEl(<SignedIn />);
     } else {
       setAfterEl(<SignedOut />);
