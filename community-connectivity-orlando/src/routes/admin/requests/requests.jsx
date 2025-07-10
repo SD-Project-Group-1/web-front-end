@@ -11,25 +11,39 @@ function Requests() {
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
   const [query, setQuery] = useState("");
+  const [inputQuery, setInputQuery] = useState("");
+
+  const [sortField, setSortField] = useState("borrow_status");
+  const [sortDir, setSortDir] = useState("asc");
 
   const paging = {
     enabled: true,
     page, pageSize, setPage, setPageSize
   };
 
+  const sorting = {
+    enabled: true,
+    sortField,
+    sortDir,
+    setSortField,
+    setSortDir
+  }
+
   const columns = [
-    { text: "First Name", dataField: "first" },
-    { text: "Last Name", dataField: "last" },
-    { text: "Status", dataField: "status" },
-    { text: "Check Out", dataField: "borrowDate" },
-    { text: "Check In", dataField: "returnDate" },
-    { text: "Device", dataField: "deviceType" },
-    { text: "Device Serial", dataField: "deviceSerial" },
+    { text: "First Name", dataField: "first_name" },
+    { text: "Last Name", dataField: "last_name" },
+    { text: "Status", dataField: "borrow_status" },
+    { text: "Check Out", dataField: "borrow_date" },
+    { text: "Check In", dataField: "return_date" },
+    { text: "Device", dataField: "device" },
+    { text: "Device Serial", dataField: "device_serial_number" },
     {
       text: "Actions", formatter: (row) => (
         <>
           <Button onClick={() => handleRowClick(row)}>EDIT</Button>
+          <Button onClick={() => handleRowClick(row)}>DELETE</Button>
         </>
       )
     }
@@ -97,7 +111,12 @@ function Requests() {
 
   const getRequests = async () => {
     console.log("running", page, pageSize);
-    const urlParams = new URLSearchParams([["page", page], ["pageSize", pageSize]]);
+    const urlParams = new URLSearchParams();
+
+    urlParams.append("page", page);
+    urlParams.append("pageSize", pageSize);
+    urlParams.append("sortBy", sortField);
+    urlParams.append("sortDir", sortDir);
 
     if (query && query !== "") {
       urlParams.append("q", query);
@@ -115,14 +134,14 @@ function Requests() {
 
     const mapped = data.map(x => ({
       borrow_id: x.borrow_id,
-      status: x.borrow_status?.replace("_", " ") ?? "",
-      first: x.user.first_name,
-      last: x.user.last_name,
-      borrowDate: new Date(x.borrow_date).toDateString(),
-      returnDate: x.return_date ? "" : new Date(x.return_date).toDateString(),
-      location: x.device.location.location_nickname,
-      deviceType: `${x.device.brand} ${x.device.make} ${x.device.model} (${x.device.type})`,
-      deviceSerial: x.device.serial_number
+      borrow_status: x.borrow_status?.replace("_", " ") ?? "",
+      first_name: x.user.first_name,
+      last_name: x.user.last_name,
+      borrow_date: new Date(x.borrow_date).toDateString(),
+      return_date: x.return_date ? "" : new Date(x.return_date).toDateString(),
+      location_nickname: x.device.location.location_nickname,
+      device: `${x.device.brand} ${x.device.make} ${x.device.model} (${x.device.type})`,
+      device_serial_number: x.device.serial_number
     }));
 
     setRequests(mapped);
@@ -131,7 +150,7 @@ function Requests() {
 
   useEffect(() => {
     getRequests();
-  }, [page, pageSize, query]);
+  }, [page, pageSize, query, sortField, sortDir]);
 
   const handleRowClick = (req) => {
     setSelectedRequest(req);
@@ -159,12 +178,13 @@ function Requests() {
           type="search"
           className="form-control search-bar"
           placeholder="Search requests"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          value={inputQuery}
+          onKeyDown={x => x.key === "Enter" ? setQuery(inputQuery) : undefined}
+          onChange={x => setInputQuery(x.target.value)}
         />
       </div>
 
-      <CustomTable data={requests} columns={columns} paging={paging} sorting={{ enabled: false }} />
+      <CustomTable data={requests} columns={columns} paging={paging} sorting={sorting} />
 
       <Modal
         show={showModal}

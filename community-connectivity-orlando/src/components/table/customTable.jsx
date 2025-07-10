@@ -1,8 +1,20 @@
-import { Pagination, Table } from "react-bootstrap";
+import { Button, Pagination, Table } from "react-bootstrap";
 
 import styles from "./customTable.module.scss";
 
 export default function CustomTable({ data, columns, paging, sorting }) {
+  const changeSort = (field) => {
+    if (sortField === field && sortDir === "asc") {
+      setSortDir("desc");
+    }
+    else if (sortField === field) {
+      setSortDir("asc");
+    } else {
+      setSortField(field);
+      setSortDir("desc");
+    }
+  }
+
   if (!data || !columns || !paging || !sorting) {
     return (
       <div className="text-center text-light my-4">
@@ -12,16 +24,29 @@ export default function CustomTable({ data, columns, paging, sorting }) {
     );
   }
 
-  //TODO: Sorting is actually a big pain. Problem for later.
-
-  const { enabled, page, pageSize, setPage, setPageSize } = paging;
+  const { page, pageSize, setPage, setPageSize } = paging;
+  const { sortField, sortDir, setSortField, setSortDir } = sorting;
 
   return (
     <div className={`${styles["table-container"]}`}>
       <Table>
         <thead>
           <tr>
-            {columns.map((c, k) => (<th key={k}>{c.text}</th>))}
+            {columns.map((c, k) =>
+            (<th key={k} >
+              <div>
+                {c.text}
+                {sorting.enabled && (
+                  sortField === c.dataField && (
+                    <Button onClick={() => changeSort(c.dataField)}>{sortDir}</Button>
+                  ) || (
+                    <Button onClick={() => changeSort(c.dataField)}>
+                      --
+                    </Button>
+                  )
+                )}
+              </div>
+            </th>))}
           </tr>
         </thead>
         <tbody>
@@ -32,7 +57,7 @@ export default function CustomTable({ data, columns, paging, sorting }) {
           ))}
         </tbody>
       </Table>
-      {enabled &&
+      {paging.enabled &&
         <div className={`${styles.pagination}`}>
           <Pagination>
             <Pagination.First className={`${styles.first}`} onClick={() => setPage(1)} />

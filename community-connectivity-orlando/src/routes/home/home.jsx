@@ -17,10 +17,21 @@ function Home() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    //Set signed in from cookies / API
+    const getRequest = async () => {
+      const response = await fetch(`/api/borrow/requested/${user.id}`);
+
+      if (!response.ok) {
+        console.log(response, await response.text());
+        alert("Failed to get the request");
+        return;
+      }
+
+      setRequest(await response.json());
+    }
     setSignedIn(user !== null);
     //Set request from API
     setRequest(null);
+
 
     if (user && request) {
       setAfterEl(<Request />);
