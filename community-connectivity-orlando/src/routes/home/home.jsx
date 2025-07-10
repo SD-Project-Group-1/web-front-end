@@ -29,13 +29,12 @@ function Home() {
       setRequest(await response.json());
     }
     setSignedIn(user !== null);
-    //Set request from API
-    setRequest(null);
 
 
     if (user && request) {
-      setAfterEl(<Request />);
+      setAfterEl(<Request request={request} />);
     } else if (user) {
+      getRequest();
       setAfterEl(<SignedIn />);
     } else {
       setAfterEl(<SignedOut />);
