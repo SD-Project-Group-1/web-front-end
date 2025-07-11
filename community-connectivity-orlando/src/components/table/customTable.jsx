@@ -1,6 +1,7 @@
 import { Button, Pagination, Table } from "react-bootstrap";
 
 import styles from "./customTable.module.scss";
+import { useEffect, useState } from "react";
 
 export default function CustomTable({ data, columns, paging, sorting }) {
   const changeSort = (field) => {
@@ -14,6 +15,13 @@ export default function CustomTable({ data, columns, paging, sorting }) {
       setSortDir("desc");
     }
   }
+
+  const [maxPage, setMaxPage] = useState(0);
+
+  useEffect(() => {
+    setMaxPage(Math.ceil(paging.count / paging.pageSize));
+    console.log("cield", paging.count, paging.pageSize, Math.ceil(paging.count / paging.pageSize));
+  }, [paging.count, paging.pageSize]);
 
   if (!data || !columns || !paging || !sorting) {
     return (
@@ -63,8 +71,8 @@ export default function CustomTable({ data, columns, paging, sorting }) {
             <Pagination.First className={`${styles.first}`} onClick={() => setPage(1)} />
             <Pagination.Prev onClick={() => setPage(page > 1 ? page - 1 : 1)} />
             <input value={page} type="number" onChange={(x) => setPage(x.target.value)} />
-            <Pagination.Next onClick={() => setPage(page + 1)} />
-            <Pagination.Last className={`${styles.last}`} />
+            <Pagination.Next onClick={() => setPage(page < maxPage ? page + 1 : maxPage)} />
+            <Pagination.Last className={`${styles.last}`} onClick={() => setPage(maxPage)} />
             <br />
             <div className={`${styles.select}`}>
               <label>Page size: </label>

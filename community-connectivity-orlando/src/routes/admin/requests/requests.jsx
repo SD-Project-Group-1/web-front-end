@@ -11,6 +11,7 @@ function Requests() {
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [count, setCount] = useState(0);
 
   const [query, setQuery] = useState("");
   const [inputQuery, setInputQuery] = useState("");
@@ -20,7 +21,7 @@ function Requests() {
 
   const paging = {
     enabled: true,
-    page, pageSize, setPage, setPageSize
+    page, pageSize, setPage, setPageSize, count
   };
 
   const sorting = {
@@ -28,7 +29,7 @@ function Requests() {
     sortField,
     sortDir,
     setSortField,
-    setSortDir
+    setSortDir,
   }
 
   const columns = [
@@ -130,7 +131,8 @@ function Requests() {
       return;
     }
 
-    const data = await response.json();
+    const { data, count } = await response.json();
+    setCount(count);
 
     const mapped = data.map(x => ({
       borrow_id: x.borrow_id,
