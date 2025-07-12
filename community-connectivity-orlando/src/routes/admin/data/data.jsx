@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Button, Card, Col, Container, Form, Row } from "react-bootstrap";
-import UserNavbar from "../../home/components/userNavbar";
 import styles from "../../home/home.module.scss";
 import { Bar, Line, Pie } from "react-chartjs-2";
 import {

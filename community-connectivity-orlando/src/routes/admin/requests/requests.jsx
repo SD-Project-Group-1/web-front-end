@@ -110,48 +110,46 @@ function Requests() {
     alert("Cancelled!");
   }
 
-  const getRequests = async () => {
-    console.log("running", page, pageSize);
-    const urlParams = new URLSearchParams();
-
-    urlParams.append("page", page);
-    urlParams.append("pageSize", pageSize);
-    urlParams.append("sortBy", sortField);
-    urlParams.append("sortDir", sortDir);
-
-    if (query && query !== "") {
-      urlParams.append("q", query);
-    }
-
-    const response = await fetch(`/api/borrow/getall?${urlParams}`);
-
-    if (!response.ok) {
-      alert("Could not get requests!");
-      console.error(response);
-      return;
-    }
-
-    const { data, count } = await response.json();
-    setCount(count);
-
-    const mapped = data.map(x => ({
-      borrow_id: x.borrow_id,
-      borrow_status: x.borrow_status?.replace("_", " ") ?? "",
-      first_name: x.user.first_name,
-      last_name: x.user.last_name,
-      borrow_date: new Date(x.borrow_date).toDateString(),
-      return_date: x.return_date ? "" : new Date(x.return_date).toDateString(),
-      location_nickname: x.device.location.location_nickname,
-      device: `${x.device.brand} ${x.device.make} ${x.device.model} (${x.device.type})`,
-      device_serial_number: x.device.serial_number
-    }));
-
-    setRequests(mapped);
-    setLoading(false);
-  };
-
   useEffect(() => {
-    getRequests();
+    (async () => {
+      console.log("running", page, pageSize);
+      const urlParams = new URLSearchParams();
+
+      urlParams.append("page", page);
+      urlParams.append("pageSize", pageSize);
+      urlParams.append("sortBy", sortField);
+      urlParams.append("sortDir", sortDir);
+
+      if (query && query !== "") {
+        urlParams.append("q", query);
+      }
+
+      const response = await fetch(`/api/borrow/getall?${urlParams}`);
+
+      if (!response.ok) {
+        alert("Could not get requests!");
+        console.error(response);
+        return;
+      }
+
+      const { data, count } = await response.json();
+      setCount(count);
+
+      const mapped = data.map(x => ({
+        borrow_id: x.borrow_id,
+        borrow_status: x.borrow_status?.replace("_", " ") ?? "",
+        first_name: x.user.first_name,
+        last_name: x.user.last_name,
+        borrow_date: new Date(x.borrow_date).toDateString(),
+        return_date: x.return_date ? "" : new Date(x.return_date).toDateString(),
+        location_nickname: x.device.location.location_nickname,
+        device: `${x.device.brand} ${x.device.make} ${x.device.model} (${x.device.type})`,
+        device_serial_number: x.device.serial_number
+      }));
+
+      setRequests(mapped);
+      setLoading(false);
+    })();
   }, [page, pageSize, query, sortField, sortDir]);
 
   const handleRowClick = (req) => {

@@ -1,5 +1,5 @@
 import styles from "../home.module.scss";
-import { Button, Alert, Container, Row } from "react-bootstrap";
+import { Button, Alert, Container } from "react-bootstrap";
 import { useState, useContext, useEffect } from "react";
 import { UserContext } from "../../../context/userContext";
 

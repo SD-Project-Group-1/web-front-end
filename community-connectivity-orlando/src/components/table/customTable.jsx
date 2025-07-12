@@ -19,6 +19,8 @@ export default function CustomTable({ data, columns, paging, sorting }) {
   const [maxPage, setMaxPage] = useState(0);
 
   useEffect(() => {
+    if (!paging.enabled) return;
+
     setMaxPage(Math.ceil(paging.count / paging.pageSize));
     console.log("cield", paging.count, paging.pageSize, Math.ceil(paging.count / paging.pageSize));
   }, [paging.count, paging.pageSize]);
@@ -41,20 +43,19 @@ export default function CustomTable({ data, columns, paging, sorting }) {
         <thead>
           <tr>
             {columns.map((c, k) =>
-            (<th key={k} >
-              <div>
-                {c.text}
-                {sorting.enabled && (
-                  sortField === c.dataField && (
-                    <Button onClick={() => changeSort(c.dataField)}>{sortDir}</Button>
-                  ) || (
-                    <Button onClick={() => changeSort(c.dataField)}>
-                      --
-                    </Button>
-                  )
-                )}
-              </div>
-            </th>))}
+            (
+              <th key={k} >
+                <div>
+                  {c.text}
+                  {sorting.enabled &&
+                    (
+                      <Button onClick={() => changeSort(c.dataField)}>
+                        {c.dataField === sortField ? sortDir : "--"}
+                      </Button>
+                    )}
+                </div>
+              </th>)
+            )}
           </tr>
         </thead>
         <tbody>

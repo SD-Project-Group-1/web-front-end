@@ -2,11 +2,9 @@ import React, { useEffect, useState } from "react";
 import {
   Button,
   Card,
-  Col,
   Container,
   Form,
   Modal,
-  Row,
   Table,
 } from "react-bootstrap";
 import { Bar } from "react-chartjs-2";
@@ -34,13 +32,13 @@ export default function Profile() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [newZip, setNewZip] = useState("");
   const [newLocation, setNewLocation] = useState("");
-  const [newAdmin, setNewAdmin] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
-    password: "",
-    role: "staff",
-  });
+  // const [newAdmin, setNewAdmin] = useState({
+  //   first_name: "",
+  //   last_name: "",
+  //   email: "",
+  //   password: "",
+  //   role: "staff",
+  // });
 
   const fetchUsers = async () => {
     try {
@@ -81,25 +79,25 @@ export default function Profile() {
     return acc;
   }, {});
 
-  const incompleteUsers = users.filter(
-    (u) => !u.first_name || !u.last_name || !u.zip_code || !u.email || !u.city,
-  );
-
-  const duplicates = {
-    emails: users
-      .map((u) => u.email)
-      .filter((email, i, arr) => arr.indexOf(email) !== i),
-    zips: users
-      .map((u) => u.zip_code)
-      .filter((z, i, arr) => arr.indexOf(z) !== i && z),
-  };
-
-  const recentUsers = users.filter((u) => {
-    const dob = new Date(u.dob);
-    const now = new Date();
-    const diff = now - dob;
-    return diff < 7 * 24 * 60 * 60 * 1000;
-  });
+  // const incompleteUsers = users.filter(
+  //   (u) => !u.first_name || !u.last_name || !u.zip_code || !u.email || !u.city,
+  // );
+  //
+  // const duplicates = {
+  //   emails: users
+  //     .map((u) => u.email)
+  //     .filter((email, i, arr) => arr.indexOf(email) !== i),
+  //   zips: users
+  //     .map((u) => u.zip_code)
+  //     .filter((z, i, arr) => arr.indexOf(z) !== i && z),
+  // };
+  //
+  // const recentUsers = users.filter((u) => {
+  //   const dob = new Date(u.dob);
+  //   const now = new Date();
+  //   const diff = now - dob;
+  //   return diff < 7 * 24 * 60 * 60 * 1000;
+  // });
 
   const exportCSV = () => {
     const headers = [
