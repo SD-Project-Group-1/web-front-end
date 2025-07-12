@@ -25,7 +25,7 @@ export default function SignedOut() {
   return (
     <div>
       <h2>Check Eligible Area</h2>
-      <div className={`${styles.eligable}`} >
+      <div className={`${styles.zipCheckContainer}`} >
         <input placeholder="ZIP Code" name="zip" value={zip} onChange={x => setZip(x.target.value)} />
         <Button onClick={checkZipCode}>Check</Button>
       </div>

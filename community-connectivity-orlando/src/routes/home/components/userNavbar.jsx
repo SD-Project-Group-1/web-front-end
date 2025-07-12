@@ -28,15 +28,10 @@ export default function UserNavbar({ signedIn }) {
   }
   return (
     <Navbar className={`${styles["navbar"]}`}>
-      <div></div>
-      <div>
-        <Button>
-          <Link to="/login">Login</Link>
-        </Button>
-        <Button>
-          <Link to="/signup">Sign up</Link>
-        </Button>
-      </div>
+<div className={styles.navButtons}>
+  <Link to="/login"><Button>Login</Button></Link>
+  <Link to="/signup"><Button>Sign Up</Button></Link>
+</div>
     </Navbar>
   );
 }
