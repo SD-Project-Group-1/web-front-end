@@ -9,7 +9,6 @@ import Request from "./routes/request/request";
 import Signup from "./routes/signup/signup";
 import Data from "./routes/admin/data/data";
 import Manage from "./routes/admin/manage/manage";
-// import AdminProfile from "./routes/admin/profile/profile";
 import Profiles from "./routes/admin/profiles/profiles";
 import Requests from "./routes/admin/requests/requests";
 import Panel from "./routes/admin/panel/panel";
@@ -35,7 +34,6 @@ function App() {
         <Route index element={<Panel />} />
         <Route path="data" element={<Data />} />
         <Route path="manage" element={<Manage />} />
-        {/* <Route path="profile" element={<AdminProfile />} /> */}
         <Route path="profiles" element={<Profiles />} />
         <Route path="requests" element={<Requests />} />
       </Route>

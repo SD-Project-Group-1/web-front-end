@@ -19,7 +19,7 @@ export const UserProvider = ({ children }) => {
 
       const data = await response.json();
 
-      setUser(data.admin ? data.admin : data.user);
+      setUser(data.loginType === "admin" ? data.admin : data.user);
     } catch (err) {
       setUser(null);
     } finally {

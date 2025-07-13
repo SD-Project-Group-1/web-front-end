@@ -11,38 +11,35 @@ function Profile() {
   const { user, loading } = useContext(UserContext);
   const [profileOf, setProfileOf] = useState(null);
 
-  console.log(setProfileOf);
-
   const navigate = useNavigate();
-
-  const setToAdminProfile = async (id) => {
-    const response = await fetch(`/api/admin/get/${id}`);
-
-    if (!response.ok) {
-      alert("Could not get that profile!");
-      setInterval(() => navigate("/"), 3000);
-    }
-
-    const data = response.json();
-    setProfileOf(data);
-  };
-
-  const setToUserProfile = async (id) => {
-    const response = await fetch(`/api/user/get/${id}`);
-
-    if (!response.ok) {
-      alert("Could not get that profile!");
-      setInterval(() => navigate("/"), 3000);
-    }
-
-    const data = await response.json();
-
-    setProfileOf(data);
-  };
 
   useEffect(() => {
     if (!user) return;
 
+    const setToAdminProfile = async (id) => {
+      const response = await fetch(`/api/admin/get/${id}`);
+
+      if (!response.ok) {
+        alert("Could not get that profile!");
+        setInterval(() => navigate("/"), 3000);
+      }
+
+      const data = response.json();
+      setProfileOf(data);
+    };
+
+    const setToUserProfile = async (id) => {
+      const response = await fetch(`/api/user/get/${id}`);
+
+      if (!response.ok) {
+        alert("Could not get that profile!");
+        setInterval(() => navigate("/"), 3000);
+      }
+
+      const data = await response.json();
+
+      setProfileOf(data);
+    };
     if (adminId) {
       if (user?.role !== "management") {
         navigate("/");
@@ -60,7 +57,7 @@ function Profile() {
     } else {
       setProfileOf(user);
     }
-  }, [user]);
+  }, [user, adminId, navigate, userId]);
 
   if (loading) {
     return <></>;

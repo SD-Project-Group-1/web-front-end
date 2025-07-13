@@ -1,8 +1,9 @@
 import React, { useEffect } from "react";
 import { useState } from "react";
-import { Button, Container, Table } from "react-bootstrap";
+import { Button, Container } from "react-bootstrap";
 import styles from "./panel.module.scss";
 import { Link } from "react-router-dom";
+import CustomTable from "../../../components/table/customTable";
 
 function Panel() {
   const [hideVid, setHideVid] = useState(false);
@@ -12,13 +13,27 @@ function Panel() {
   useEffect(() => {
     setHideVid(sessionStorage.getItem("hideVid") === "true");
     // populateFakeData();
-    populateStatus();
+    populateDevices();
     populateRequests();
   }, []);
 
-  const populateStatus = async () => {
+  const devColumns = [
+    { text: "Device ID", dataField: "id" },
+    { text: "Device Name", dataField: "name" },
+    { text: "Status", dataField: "status" },
+    { text: "Last Condition", dataField: "lastCondition" },
+  ];
+
+  const populateDevices = async () => {
     try {
-      const responce = await fetch("/api/devices/getall", {
+      const urlParams = new URLSearchParams();
+
+      urlParams.append("page", 1);
+      urlParams.append("pageSize", 5);
+      urlParams.append("sortBy", "created");
+      urlParams.append("sortDir", "desc");
+
+      const response = await fetch(`/api/devices/getall?${urlParams}`, {
         method: "GET",
         credentials: "include",
         headers: {
@@ -26,30 +41,45 @@ function Panel() {
         },
       });
 
-      if (!responce.ok) {
-        console.log("An error has occured");
+      if (!response.ok) {
+        console.error("An error has occured");
+        console.error(response, await response.text());
+        alert("Could not get data.");
       }
 
-      const json = await responce.json();
+      const { data } = await response.json();
       let statusData = [];
       // Add logic to make the status more readable EG remove the underscores
-      for (let i = 0; i < json.length; i++) {
+      for (let i = 0; i < data.length; i++) {
         statusData[i] = {
-          id: json[i].serial_number,
-          name: `${json[i].brand} ${json[i].make} ${json[i].model}`,
-          status: json[i].borrow[0].borrow_status,
-          lastCondition: json[i].borrow[0].device_return_condition,
+          id: data[i].serial_number,
+          name: `${data[i].brand} ${data[i].make} ${data[i].model}`,
+          status: data[i].borrow.at(0)?.borrow_status?.replace('_', ' ') ?? " ",
+          lastCondition: data[i].borrow.at(0)?.device_return_condition?.replace('_', ' ') ?? " "
         };
       }
       setDevStatus(statusData);
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
   };
 
+  const reqColumns = [
+    { text: "First Name", dataField: "first" },
+    { text: "Last Name", dataField: "last" },
+    { text: "Device", dataField: "device" },
+  ];
+
   const populateRequests = async () => {
     try {
-      const responce = await fetch("/api/borrow/getall", {
+      const urlParams = new URLSearchParams();
+
+      urlParams.append("page", 1);
+      urlParams.append("pageSize", 5);
+      urlParams.append("sortBy", "created");
+      urlParams.append("sortDir", "desc");
+
+      const response = await fetch(`/api/borrow/getall?${urlParams}`, {
         method: "GET",
         credentials: "include",
         headers: {
@@ -57,73 +87,28 @@ function Panel() {
         },
       });
 
-      if (!responce.ok) {
-        console.log("An error has occured");
+      if (!response.ok) {
+        console.error("An error has occured");
+        console.error(response, await response.text());
+        alert("Could not get data.");
       }
 
-      const json = await responce.json();
+      const { data } = await response.json();
       let requestData = [];
-      // Add logic to make the status more readable EG remove the underscores
-      for (let i = 0; i < json.length; i++) {
+
+      for (let i = 0; i < data.length; i++) {
         requestData[i] = {
-          first: json[i].user.first_name,
-          last: json[i].user.last_name,
-          device: `${json[i].device.brand} ${json[i].device.make} ${json[i].device.model
-            }`,
+          first: data[i].user?.first_name,
+          last: data[i].user?.last_name,
+          device: `${data[i].device.brand} ${data[i].device.make} ${data[i].device.model}`,
         };
       }
       setDevRequests(requestData);
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
   };
 
-  // const populateFakeData = () => {
-  //   const fakeRequests = [
-  //     { first: "Alice", last: "Johnson", device: "Laptop A123" },
-  //     { first: "Bob", last: "Smith", device: "Tablet T456" },
-  //     { first: "Carol", last: "Lee", device: "Phone P789" },
-  //     { first: "David", last: "Kim", device: "Laptop X234" },
-  //     { first: "Eve", last: "Nguyen", device: "Tablet Z987" },
-  //   ];
-  //
-  //   const fakeStatuses = [
-  //     {
-  //       id: "A123",
-  //       name: "Laptop A123",
-  //       status: "Online",
-  //       lastCondition: "Normal",
-  //     },
-  //     {
-  //       id: "T456",
-  //       name: "Tablet T456",
-  //       status: "Offline",
-  //       lastCondition: "Battery Low",
-  //     },
-  //     {
-  //       id: "P789",
-  //       name: "Phone P789",
-  //       status: "Online",
-  //       lastCondition: "Normal",
-  //     },
-  //     {
-  //       id: "X234",
-  //       name: "Laptop X234",
-  //       status: "Maintenance",
-  //       lastCondition: "Overheated",
-  //     },
-  //     {
-  //       id: "Z987",
-  //       name: "Tablet Z987",
-  //       status: "Online",
-  //       lastCondition: "Normal",
-  //     },
-  //   ];
-  //
-  //   setDevRequests(fakeRequests);
-  //   setDevStatus(fakeStatuses);
-  // };
-  //
   const hideVideo = () => {
     setHideVid(true);
     sessionStorage.setItem("hideVid", "true");
@@ -146,52 +131,16 @@ function Panel() {
         <div>
           <h3>Dashboard</h3>
           <h4>
-            <Link to="/admin/requests">Device Requests</Link>
+            <Link to="/admin/requests">Requests</Link>
           </h4>
           <div className={`${styles["table-container"]} `}>
-            <Table>
-              <thead>
-                <tr>
-                  <th>First Name</th>
-                  <th>Last Name</th>
-                  <th>Device</th>
-                </tr>
-              </thead>
-              <tbody>
-                {devRequests.map((req, k) => (
-                  <tr key={k}>
-                    <td>{req.first}</td>
-                    <td>{req.last}</td>
-                    <td>{req.device}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
+            <CustomTable data={devRequests} columns={reqColumns} ellipsis={true} />
           </div>
           <h4>
             <Link to="/admin/manage">Device Status</Link>
           </h4>
           <div className={`${styles["table-container"]} `}>
-            <Table>
-              <thead>
-                <tr>
-                  <th>Device ID</th>
-                  <th>Device Name</th>
-                  <th>Status</th>
-                  <th>Last Condition</th>
-                </tr>
-              </thead>
-              <tbody>
-                {devStatus.map((stat, k) => (
-                  <tr key={k}>
-                    <td>{stat.id}</td>
-                    <td>{stat.name}</td>
-                    <td>{stat.status}</td>
-                    <td>{stat.lastCondition}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
+            <CustomTable data={devStatus} columns={devColumns} ellipsis={true} />
           </div>
         </div>
       </div>
