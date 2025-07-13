@@ -44,7 +44,7 @@ function Panel() {
       if (!response.ok) {
         console.error("An error has occured");
         console.error(response, await response.text());
-        alert("Could not get data.");
+        // alert("Could not get data.");
       }
 
       const { data } = await response.json();
@@ -54,8 +54,10 @@ function Panel() {
         statusData[i] = {
           id: data[i].serial_number,
           name: `${data[i].brand} ${data[i].make} ${data[i].model}`,
-          status: data[i].borrow.at(0)?.borrow_status?.replace('_', ' ') ?? " ",
-          lastCondition: data[i].borrow.at(0)?.device_return_condition?.replace('_', ' ') ?? " "
+          status: data[i].borrow.at(0)?.borrow_status?.replace("_", " ") ?? " ",
+          lastCondition:
+            data[i].borrow.at(0)?.device_return_condition?.replace("_", " ") ??
+              " ",
         };
       }
       setDevStatus(statusData);
@@ -90,7 +92,7 @@ function Panel() {
       if (!response.ok) {
         console.error("An error has occured");
         console.error(response, await response.text());
-        alert("Could not get data.");
+        // alert("Could not get data.");
       }
 
       const { data } = await response.json();
@@ -100,7 +102,9 @@ function Panel() {
         requestData[i] = {
           first: data[i].user?.first_name,
           last: data[i].user?.last_name,
-          device: `${data[i].device.brand} ${data[i].device.make} ${data[i].device.model}`,
+          device: `${data[i].device.brand} ${data[i].device.make} ${
+            data[i].device.model
+          }`,
         };
       }
       setDevRequests(requestData);
@@ -112,6 +116,11 @@ function Panel() {
   const hideVideo = () => {
     setHideVid(true);
     sessionStorage.setItem("hideVid", "true");
+  };
+
+  const showVideo = () => {
+    setHideVid(false);
+    sessionStorage.setItem("hideVid", "false");
   };
 
   return (
@@ -128,19 +137,33 @@ function Panel() {
               </div>
             </div>
           )}
+        {hideVid &&
+          (
+            <div>
+              <Button onClick={showVideo}>Show?</Button>
+            </div>
+          )}
         <div>
           <h3>Dashboard</h3>
           <h4>
             <Link to="/admin/requests">Requests</Link>
           </h4>
           <div className={`${styles["table-container"]} `}>
-            <CustomTable data={devRequests} columns={reqColumns} ellipsis={true} />
+            <CustomTable
+              data={devRequests}
+              columns={reqColumns}
+              ellipsis={true}
+            />
           </div>
           <h4>
             <Link to="/admin/manage">Device Status</Link>
           </h4>
           <div className={`${styles["table-container"]} `}>
-            <CustomTable data={devStatus} columns={devColumns} ellipsis={true} />
+            <CustomTable
+              data={devStatus}
+              columns={devColumns}
+              ellipsis={true}
+            />
           </div>
         </div>
       </div>
