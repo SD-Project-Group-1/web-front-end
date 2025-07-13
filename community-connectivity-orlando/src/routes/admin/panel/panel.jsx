@@ -44,7 +44,7 @@ function Panel() {
       if (!response.ok) {
         console.error("An error has occured");
         console.error(response, await response.text());
-        // alert("Could not get data.");
+        alert("Could not get data.");
       }
 
       const { data } = await response.json();
@@ -92,7 +92,7 @@ function Panel() {
       if (!response.ok) {
         console.error("An error has occured");
         console.error(response, await response.text());
-        // alert("Could not get data.");
+        alert("Could not get data.");
       }
 
       const { data } = await response.json();
