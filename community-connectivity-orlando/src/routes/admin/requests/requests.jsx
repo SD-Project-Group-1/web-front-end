@@ -1,54 +1,71 @@
 import { useEffect, useState } from "react";
-import { Button, Modal } from "react-bootstrap";
+import { Button, Container, Modal } from "react-bootstrap";
 import "./requests.scss";
 import CustomTable from "../../../components/table/customTable";
+import { Link } from "react-router-dom";
 
 function Requests() {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showModal, setShowModal] = useState(false);
+
+  const [showSure, setSure] = useState(false);
+
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [query, setQuery] = useState("");
+  const [inputQuery, setInputQuery] = useState("");
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [count, setCount] = useState(0);
 
-  const [query, setQuery] = useState("");
-  const [inputQuery, setInputQuery] = useState("");
-
   const [sortField, setSortField] = useState("borrow_status");
   const [sortDir, setSortDir] = useState("asc");
 
-  const paging = {
-    enabled: true,
-    page, pageSize, setPage, setPageSize, count
-  };
-
-  const sorting = {
-    enabled: true,
-    sortField,
-    sortDir,
-    setSortField,
-    setSortDir,
-  }
+  const paging = { page, pageSize, setPage, setPageSize, count };
+  const sorting = { sortField, sortDir, setSortField, setSortDir }
 
   const columns = [
-    { text: "First Name", dataField: "first_name" },
-    { text: "Last Name", dataField: "last_name" },
+    {
+      text: "User", dataField: "name", formatter: row => (
+        row.user_id === "DELETED" ? "DELETED" : <Link to={`/profile/${row.user_id}`} className="text-white text-decoration-none link-primary">{row.name}</Link>
+      )
+    },
     { text: "Status", dataField: "borrow_status" },
     { text: "Check Out", dataField: "borrow_date" },
     { text: "Check In", dataField: "return_date" },
     { text: "Device", dataField: "device" },
-    { text: "Device Serial", dataField: "device_serial_number" },
+    { text: "Serial #", dataField: "device_serial_number" },
     {
-      text: "Actions", formatter: (row) => (
+      noSort: true, text: "Actions", formatter: (row) => (
         <>
-          <Button onClick={() => handleRowClick(row)}>EDIT</Button>
-          <Button onClick={() => handleRowClick(row)}>DELETE</Button>
+          <Button onClick={() => handleRowClick(row)} className="border-0 fw-bold">EDIT</Button>
+          <Button onClick={() => { setSelectedRequest(row); setSure(true) }} className="bg-danger border-0 fw-bold">DELETE</Button>
         </>
       )
     }
   ];
+
+  const deleteRequest = async () => {
+    try {
+      const response = await fetch(`/api/borrow/delete/${selectedRequest.borrow_id}`, {
+        method: "DELETE"
+      });
+
+      if (!response.ok) {
+        console.error("Could not get request.\n", response, '\n', await response.text());
+        alert("Could not delete!");
+      }
+      setQuery(" ");
+      setQuery("");
+    } catch (error) {
+      console.error("Could not get request.\n", error);
+      alert("Could not delete!");
+    } finally {
+      setSure(false);
+    }
+  }
 
   const approveRequest = async () => {
     const id = selectedRequest.borrow_id;
@@ -112,7 +129,6 @@ function Requests() {
 
   useEffect(() => {
     (async () => {
-      console.log("running", page, pageSize);
       const urlParams = new URLSearchParams();
 
       urlParams.append("page", page);
@@ -137,9 +153,9 @@ function Requests() {
 
       const mapped = data.map(x => ({
         borrow_id: x.borrow_id,
+        user_id: x.user?.user_id ?? "DELETED",
         borrow_status: x.borrow_status?.replace("_", " ") ?? "",
-        first_name: x.user.first_name,
-        last_name: x.user.last_name,
+        name: x.user ? x.user.first_name + " " + x.user.last_name : "DELETED",
         borrow_date: new Date(x.borrow_date).toDateString(),
         return_date: x.return_date ? "" : new Date(x.return_date).toDateString(),
         location_nickname: x.device.location.location_nickname,
@@ -159,6 +175,7 @@ function Requests() {
 
   const handleClose = () => {
     setShowModal(false);
+    setSure(false);
     setSelectedRequest(null);
   };
 
@@ -172,19 +189,21 @@ function Requests() {
 
   return (
     <div className="container-fluid requests-container">
-      <h2 className="requests-title">Requests</h2>
-      <div className="requests-search mb-3">
-        <input
-          type="search"
-          className="form-control search-bar"
-          placeholder="Search requests"
-          value={inputQuery}
-          onKeyDown={x => x.key === "Enter" ? setQuery(inputQuery) : undefined}
-          onChange={x => setInputQuery(x.target.value)}
-        />
-      </div>
+      <Container>
+        <h2 className="requests-title">Requests</h2>
+        <div className="requests-search mb-3">
+          <input
+            type="search"
+            className="form-control search-bar"
+            placeholder="Search requests"
+            value={inputQuery}
+            onKeyDown={x => x.key === "Enter" ? setQuery(inputQuery) : undefined}
+            onChange={x => setInputQuery(x.target.value)}
+          />
+        </div>
 
-      <CustomTable data={requests} columns={columns} paging={paging} sorting={sorting} />
+        <CustomTable data={requests} columns={columns} paging={paging} sorting={sorting} />
+      </Container>
 
       <Modal
         show={showModal}
@@ -233,6 +252,21 @@ function Requests() {
           <Button className="modal-btn" onClick={denyRequest}>Deny</Button>
         </Modal.Footer>
       </Modal>
+
+      <Modal
+        show={showSure}
+        onHide={handleClose}
+        centered
+      >
+        <Modal.Header>
+          <Modal.Title className="fw-bold">Are you sure you want to delete this request?</Modal.Title>
+        </Modal.Header>
+        <Modal.Footer>
+          <Button className="bg-danger fw-bold border-danger" onClick={deleteRequest}>Yes</Button>
+          <Button className="fw-bold" onClick={() => setSure(false)}>No</Button>
+        </Modal.Footer>
+      </Modal>
+
     </div>
   );
 }

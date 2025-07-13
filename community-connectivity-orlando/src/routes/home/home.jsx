@@ -21,7 +21,7 @@ function Home() {
       const response = await fetch(`/api/borrow/requested/${user.id}`);
 
       if (!response.ok) {
-        console.log(response, await response.text());
+        console.error(response, await response.text());
         alert("Failed to get the request");
         return;
       }

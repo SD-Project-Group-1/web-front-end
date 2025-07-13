@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { Button, Form, Modal } from "react-bootstrap";
+import React, { useCallback, useEffect, useState } from "react";
+import { Container, Form, Modal } from "react-bootstrap";
 import "./manage.scss";
+import CustomTable from "../../../components/table/customTable";
 
 function Manage() {
   const [showModal, setShowModal] = useState(false);
@@ -13,15 +14,36 @@ function Manage() {
   const [model, setModel] = useState("");
   const [make, setMake] = useState("");
 
-  useEffect(() => {
-    requestData();
-    requestLocations();
-  }, []);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [count, setCount] = useState(0);
 
-  const requestData = async () => {
+  const [sortField, setSortField] = useState("borrow_status");
+  const [sortDir, setSortDir] = useState("asc");
+
+  const paging = { page, pageSize, setPage, setPageSize, count };
+  const sorting = { sortField, sortDir, setSortField, setSortDir }
+
+  const columns = [
+    { text: "Serial #", dataField: "serial", sortName: "serial_number" },
+    { text: "Brand", dataField: "brand" },
+    { text: "Model", dataField: "model" },
+    { text: "Location", dataField: "location" },
+    { text: "Status", dataField: "status", noSort: true },
+    { text: "Condition", dataField: "condition", noSort: true },
+  ]
+
+  const requestData = useCallback(async () => {
+    const urlParams = new URLSearchParams();
+
+    urlParams.append("page", page);
+    urlParams.append("pageSize", pageSize);
+    urlParams.append("sortBy", sortField);
+    urlParams.append("sortDir", sortDir);
+
     try {
-      const responce = await fetch(
-        `/api/devices/getall`,
+      const response = await fetch(
+        `/api/devices/getall?${urlParams}`,
         {
           method: "GET",
           credentials: "include",
@@ -31,34 +53,37 @@ function Manage() {
         },
       );
 
-      if (!responce.ok) {
-        console.log("An error has occured");
+      if (!response.ok) {
+        console.erro("An error has occured");
+        console.error(response);
+        alert("Something went wrong.");
       }
 
-      const json = await responce.json();
+      const { data, count } = await response.json();
       let deviceData = [];
-      for (let i = 0; i < json.length; i++) {
-        const borrowInfo = json[i].borrow && json[i].borrow.length > 0
-          ? json[i].borrow[0]
+      for (let i = 0; i < data.length; i++) {
+        const borrowInfo = data[i].borrow && data[i].borrow.length > 0
+          ? data[i].borrow.at(-1)
           : null;
-
         deviceData[i] = {
-          serial: json[i].serial_number,
-          type: json[i].type,
-          brand: json[i].brand,
-          model: `${json[i].make} ${json[i].model}`,
-          location: json[i].location.street_address,
-          status: borrowInfo?.borrow_status || "N/A",
+          serial: data[i].serial_number,
+          type: data[i].type,
+          brand: data[i].brand,
+          model: `${data[i].make} ${data[i].model}`,
+          location: data[i].location.location_nickname,
+          status: borrowInfo?.borrow_status?.replace('_', ' ') || "N/A",
           condition: borrowInfo?.device_return_condition || "N/A",
         };
       }
-      setDevices(deviceData);
-    } catch (err) {
-      console.log(err);
-    }
-  };
 
-  const requestLocations = async () => {
+      setDevices(deviceData);
+      setCount(count);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [page, pageSize, sortField, sortDir]);
+
+  const requestLocations = useCallback(async () => {
     try {
       const response = await fetch("/api/locations/getall", {
         method: "GET",
@@ -67,16 +92,17 @@ function Manage() {
       });
 
       if (!response.ok) {
-        console.log("Error fetching locations");
+        console.error("Error fetching locations");
+        console.error(response);
         return;
       }
 
-      const json = await response.json();
-      setLocations(json);
+      const { data } = await response.json();
+      setLocations(data);
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
-  };
+  }, []);
 
   const handleSubmit = async () => {
     try {
@@ -96,12 +122,12 @@ function Manage() {
         }),
       });
       if (!response.ok) {
-        console.log(response.json);
+        console.erro(await response.text());
         alert("Failed to add device.");
         return;
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
     requestData();
     setShowModal(false);
@@ -113,46 +139,26 @@ function Manage() {
     setSelectedLocation("");
   };
 
+  useEffect(() => {
+    requestData();
+    requestLocations();
+  }, [page, pageSize, sortField, sortDir, requestData, requestLocations]);
+
   return (
     <div
       className="container-fluid p-4 text-white"
       style={{ backgroundColor: "#102133", minHeight: "100vh" }}
     >
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2 className="manage-title mt-4">Device Management</h2>
-        <button className="add-device-btn" onClick={() => setShowModal(true)}>
-          Add Device
-        </button>
-      </div>
+      <Container className="table-container">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h2 className="manage-title mt-4">Device Management</h2>
+          <button className="add-device-btn" onClick={() => setShowModal(true)}>
+            Add Device
+          </button>
+        </div>
 
-      <div className="table-container">
-        <table className="table-custom">
-          <thead>
-            <tr>
-              <th>Serial #</th>
-              <th>Type</th>
-              <th>Brand</th>
-              <th>Model</th>
-              <th>Location</th>
-              <th>Status</th>
-              <th>Condition</th>
-            </tr>
-          </thead>
-          <tbody>
-            {devices.map((d, i) => (
-              <tr key={i}>
-                <td>{d.serial}</td>
-                <td>{d.type}</td>
-                <td>{d.brand}</td>
-                <td>{d.model}</td>
-                <td>{d.location}</td>
-                <td>{d.status}</td>
-                <td>{d.condition}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+        <CustomTable data={devices} columns={columns} paging={paging} sorting={sorting} />
+      </Container>
       <Modal
         show={showModal}
         onHide={() => setShowModal(false)}

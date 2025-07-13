@@ -2,8 +2,6 @@ import { Button } from "react-bootstrap";
 import styles from "../home.module.scss";
 
 export default function Request({ request }) {
-  console.log(request);
-
   const date = new Date(request.borrow_date);
 
   return (

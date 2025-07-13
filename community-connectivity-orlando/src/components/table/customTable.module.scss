@@ -22,6 +22,7 @@
     th {
       color: white !important;
       border-bottom: 7px solid $bg-color-primary;
+      text-wrap: nowrap;
 
       div {
         display: flex;
@@ -35,7 +36,7 @@
           color: white;
           border: none;
           height: 100%;
-          min-width: 70px;
+          min-width: 60px;
         }
       }
     }
@@ -52,6 +53,13 @@
     border: none;
     font-size: 20px;
   }
+
+  li:hover,
+  a:hover {
+    background-color: $primary-color;
+    color: black;
+  }
+
 
   input {
     border-radius: 0;
@@ -88,6 +96,7 @@
 
   .first {
     border-radius: 0 0 0 10px;
+    overflow: clip;
   }
 
   .last {

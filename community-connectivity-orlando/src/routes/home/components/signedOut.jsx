@@ -16,8 +16,6 @@ export default function SignedOut() {
     //   headers: [["Content-Type", "application/json"]]
     // });
 
-    // console.log(response);
-
 
     alert("This route is a work in progess!");
   }

@@ -3,7 +3,7 @@ import { Button, Pagination, Table } from "react-bootstrap";
 import styles from "./customTable.module.scss";
 import { useEffect, useState } from "react";
 
-export default function CustomTable({ data, columns, paging, sorting }) {
+export default function CustomTable({ data, columns, paging, sorting, ellipsis }) {
   const changeSort = (field) => {
     if (sortField === field && sortDir === "asc") {
       setSortDir("desc");
@@ -19,13 +19,11 @@ export default function CustomTable({ data, columns, paging, sorting }) {
   const [maxPage, setMaxPage] = useState(0);
 
   useEffect(() => {
-    if (!paging.enabled) return;
-
+    if (!paging) return;
     setMaxPage(Math.ceil(paging.count / paging.pageSize));
-    console.log("cield", paging.count, paging.pageSize, Math.ceil(paging.count / paging.pageSize));
-  }, [paging.count, paging.pageSize]);
+  }, [paging?.count, paging?.pageSize, paging]);
 
-  if (!data || !columns || !paging || !sorting) {
+  if (!data || !columns) {
     return (
       <div className="text-center text-light my-4">
         <span className="spinner-border text-warning"></span>
@@ -34,8 +32,11 @@ export default function CustomTable({ data, columns, paging, sorting }) {
     );
   }
 
-  const { page, pageSize, setPage, setPageSize } = paging;
-  const { sortField, sortDir, setSortField, setSortDir } = sorting;
+  const { page, pageSize, setPage, setPageSize } = paging ?? {};
+  const { sortField, sortDir, setSortField, setSortDir } = sorting ?? {};
+
+  const pagingEnabled = paging !== undefined;
+  const sortingEnabled = sorting !== undefined;
 
   return (
     <div className={`${styles["table-container"]}`}>
@@ -47,9 +48,9 @@ export default function CustomTable({ data, columns, paging, sorting }) {
               <th key={k} >
                 <div>
                   {c.text}
-                  {sorting.enabled &&
+                  {sortingEnabled && !c.noSort &&
                     (
-                      <Button onClick={() => changeSort(c.dataField)}>
+                      <Button onClick={() => changeSort(c.sortName ?? c.dataField)}>
                         {c.dataField === sortField ? sortDir : "--"}
                       </Button>
                     )}
@@ -64,9 +65,14 @@ export default function CustomTable({ data, columns, paging, sorting }) {
               {columns.map((c, k2) => <td key={k2}>{(!c.formatter) ? (datum[c.dataField]) : c.formatter(datum)}</td>)}
             </tr>
           ))}
+          {ellipsis && (
+            <tr>
+              {columns.map((_c, k2) => <td key={k2}>{k2 === 0 ? ". . ." : ""}</td>)}
+            </tr>
+          )}
         </tbody>
       </Table>
-      {paging.enabled &&
+      {pagingEnabled &&
         <div className={`${styles.pagination}`}>
           <Pagination>
             <Pagination.First className={`${styles.first}`} onClick={() => setPage(1)} />
@@ -78,6 +84,7 @@ export default function CustomTable({ data, columns, paging, sorting }) {
             <div className={`${styles.select}`}>
               <label>Page size: </label>
               <select value={pageSize} onChange={x => setPageSize(x.target.value)}>
+                <option value={2}>2</option>
                 <option value={5}>5</option>
                 <option value={10}>10</option>
                 <option value={50}>50</option>

@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Button,
   Card,
   Container,
   Form,
   Modal,
-  Table,
 } from "react-bootstrap";
 import { Bar } from "react-chartjs-2";
 import {
@@ -17,6 +16,7 @@ import {
   Tooltip,
 } from "chart.js";
 import styles from "../../home/home.module.scss";
+import CustomTable from "../../../components/table/customTable";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -24,8 +24,6 @@ export default function Profile() {
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [zipFilter, setZipFilter] = useState("All");
-  const [roleFilter, setRoleFilter] = useState("All");
   const [viewMode, setViewMode] = useState("table");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showReassignModal, setShowReassignModal] = useState(false);
@@ -40,40 +38,87 @@ export default function Profile() {
   //   role: "staff",
   // });
 
-  const fetchUsers = async () => {
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [count, setCount] = useState(0);
+
+  const [query, setQuery] = useState("");
+
+  const [sortField, setSortField] = useState("user_id");
+  const [sortDir, setSortDir] = useState("desc");
+
+  const paging = { page, pageSize, setPage, setPageSize, count };
+  const sorting = { sortField, sortDir, setSortField, setSortDir }
+
+  const columns = [
+    { text: "User ID", dataField: "user_id" },
+    { text: "First Name", dataField: "first_name" },
+    { text: "Last Name", dataField: "last_name" },
+    { text: "Email", dataField: "email" },
+    { text: "Zip", dataField: "zip_code" },
+    {
+      noSort: true, text: "Actions", formatter: (user) => (
+        <>
+          <Button
+            size="sm"
+            variant="outline-warning"
+            onClick={() => {
+              setSelectedUser(user);
+              setNewZip(user.zip_code || "");
+              setNewLocation(user.city || "");
+              setShowReassignModal(true);
+            }}
+          >
+            Reassign
+          </Button>{" "}
+          <Button
+            size="sm"
+            variant="outline-danger"
+            onClick={() => {
+              setSelectedUser(user);
+              setShowDeleteModal(true);
+            }}
+          >
+            Delete
+          </Button>
+        </>
+      )
+    },
+  ]
+
+  const fetchUsers = useCallback(async () => {
     try {
+      const urlParams = new URLSearchParams();
+
+      urlParams.append("page", page);
+      urlParams.append("pageSize", pageSize);
+      urlParams.append("sortBy", sortField);
+      urlParams.append("sortDir", sortDir);
+
+      if (query && query !== "") {
+        urlParams.append("q", query);
+      }
+
       setIsLoading(true);
-      const res = await fetch("/api/user/getall");
-      const data = await res.json();
+      const res = await fetch(`/api/user/getall?${urlParams}`);
+      const { data, count } = await res.json();
       for (const user of data) {
         user.role = "user";
       }
       setUsers(data);
+      setCount(count)
     } catch (err) {
       console.error("Failed to fetch users");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [page, pageSize, sortField, sortDir, query]);
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [page, pageSize, sortField, sortDir, count, query, fetchUsers]);
 
-  const zipCodes = [...new Set(users.map((u) => u.zip_code).filter(Boolean))];
-  const roles = [...new Set(users.map((u) => u.role).filter(Boolean))];
-
-  const filteredUsers = users.filter((u) => {
-    const matchesName = `${u.first_name} ${u.last_name}`
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesZIP = zipFilter === "All" ||
-      u.zip_code?.toString() === zipFilter;
-    const matchesRole = roleFilter === "All" || u.role === roleFilter;
-    return matchesName && matchesZIP && matchesRole;
-  });
-
-  const zipCounts = filteredUsers.reduce((acc, user) => {
+  const zipCounts = users.reduce((acc, user) => {
     const zip = user.zip_code || "N/A";
     acc[zip] = (acc[zip] || 0) + 1;
     return acc;
@@ -111,7 +156,7 @@ export default function Profile() {
       "city",
       "state",
     ];
-    const rows = filteredUsers.map((user) =>
+    const rows = users.map((user) =>
       headers.map((field) => `"${user[field] || ""}"`).join(",")
     );
     const csv = [headers.join(","), ...rows].join("\n");
@@ -186,33 +231,18 @@ export default function Profile() {
           </div>
         </div>
 
-        <Form className="mb-3 d-flex flex-column flex-md-row gap-2">
+        <Form className="mb-3 d-flex flex-column flex-md-row gap-2" onSubmit={ev => ev.preventDefault()}>
           <Form.Control
             type="text"
-            placeholder="Search name..."
+            placeholder="Search ..."
+            className="w-75"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={e => e.key === "Enter" ? setQuery(searchTerm) : undefined}
           />
           <Form.Select
-            value={zipFilter}
-            onChange={(e) => setZipFilter(e.target.value)}
-          >
-            <option value="All">All ZIPs</option>
-            {zipCodes.map((zip) => (
-              <option key={zip} value={zip}>
-                {zip}
-              </option>
-            ))}
-          </Form.Select>
-          <Form.Select
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-          >
-            <option value="All">All Roles</option>
-            {roles.map((role) => <option key={role}>{role}</option>)}
-          </Form.Select>
-          <Form.Select
             value={viewMode}
+            className="w-25"
             onChange={(e) => setViewMode(e.target.value)}
           >
             <option value="table">Table View</option>
@@ -254,61 +284,7 @@ export default function Profile() {
 
               {viewMode === "table" && (
                 <div className="table-responsive">
-                  <Table striped bordered hover variant="dark">
-                    <thead>
-                      <tr>
-                        <th>User ID</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>ZIP</th>
-                        <th>Role</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredUsers.map((user) => (
-                        <tr
-                          key={user.user_id}
-                          className={!user.first_name ||
-                            !user.last_name ||
-                            !user.zip_code ||
-                            !user.city
-                            ? "table-warning"
-                            : ""}
-                        >
-                          <td>{user.user_id}</td>
-                          <td>{user.first_name} {user.last_name}</td>
-                          <td>{user.email}</td>
-                          <td>{user.zip_code}</td>
-                          <td>{user.role || "N/A"}</td>
-                          <td>
-                            <Button
-                              size="sm"
-                              variant="outline-warning"
-                              onClick={() => {
-                                setSelectedUser(user);
-                                setNewZip(user.zip_code || "");
-                                setNewLocation(user.city || "");
-                                setShowReassignModal(true);
-                              }}
-                            >
-                              Reassign
-                            </Button>{" "}
-                            <Button
-                              size="sm"
-                              variant="outline-danger"
-                              onClick={() => {
-                                setSelectedUser(user);
-                                setShowDeleteModal(true);
-                              }}
-                            >
-                              Delete
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </Table>
+                  <CustomTable data={users} columns={columns} sorting={sorting} paging={paging} />
                 </div>
               )}
             </>

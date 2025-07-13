@@ -6,7 +6,7 @@ import { UserContext } from "../../../context/userContext";
 export default function SignedIn() {
   const { user } = useContext(UserContext);
 
-  const [pickupLocation, setPickupLocation] = useState("");
+  const [pickupLocation, setPickupLocation] = useState(-1);
   const [pickupDateTime, setPickupDateTime] = useState("");
   const [reason, setReason] = useState("Job Search");
 
@@ -19,11 +19,13 @@ export default function SignedIn() {
     const response = await fetch("/api/locations/getall");
 
     if (!response.ok) {
-      console.log(response, await response.text());
+      console.error(response, await response.text());
       alert("Something went wrong. The request form cannot be loaded!");
     }
 
-    setLocations(await response.json());
+    const { data } = await response.json();
+
+    setLocations(data);
     setLoading(false);
   }
 
@@ -36,7 +38,7 @@ export default function SignedIn() {
       return;
     }
 
-    if (!locations.some(x => x.location_nickname === pickupLocation)) {
+    if (!locations.some(x => x.location_id === parseInt(pickupLocation))) {
       setErrorMessage("Please pick a valid location!");
       return;
     }
@@ -55,18 +57,16 @@ export default function SignedIn() {
         body: JSON.stringify({
           user_id: user.id,
           borrow_date: pickupDateTime,
-          user_location: pickupLocation,
+          location_id: pickupLocation,
           reason_for_borrow: reason,
         }),
       });
 
       if (response.ok) {
-        const data = await response.json();
         setSuccessMessage("Request submitted successfully!");
-        console.log("Borrow record:", data);
       } else {
         const errorText = await response.text();
-        console.log(response);
+        console.error(response);
         setErrorMessage(`Error: ${errorText}`);
       }
     } catch (err) {
@@ -98,17 +98,18 @@ export default function SignedIn() {
       </p>
       <Container className={styles["request-form"]}>
         <div>
-          <input
+          <select
             list="location-options"
             placeholder="Pickup Location"
             value={pickupLocation}
             onChange={(e) => setPickupLocation(e.target.value)}
-          />
-          <datalist id="location-options">
+          >
             {locations.map((loc, i) => (
-              <option key={i} value={loc.location_nickname} />
+              <option key={i} value={loc.location_id}>
+                {loc.location_nickname}
+              </ option>
             ))}
-          </datalist>
+          </select>
         </div>
         <div>
           <input

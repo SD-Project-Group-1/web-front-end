@@ -5,29 +5,6 @@
   padding: 20px;
 }
 
-.requests-nav {
-  background-color: #001f3f;
-
-  .nav-link {
-    color: white;
-
-    &.active {
-      color: #17a2b8;
-      font-weight: bold;
-    }
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-
-  .profile-icon {
-    margin-left: auto;
-    color: white;
-    font-size: 1.5rem;
-  }
-}
-
 .requests-title {
   color: #17a2b8;
   margin-top: 1rem;
@@ -42,6 +19,12 @@ input[type="search"] {
 
 input[type="search"]::placeholder {
   color: #666;
+}
+
+.user-link {
+  a {
+    text-decoration: none !important;
+  }
 }
 
 
