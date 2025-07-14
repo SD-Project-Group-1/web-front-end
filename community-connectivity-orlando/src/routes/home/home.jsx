@@ -23,7 +23,9 @@ function Home() {
     }
 
     const getRequest = async () => {
-      if (!user) return;
+      if (loading || !user) return;
+
+      console.log(user);
 
       const response = await fetch(`/api/borrow/requested/${user.id}`);
 
@@ -46,7 +48,7 @@ function Home() {
     } else {
       setAfterEl(<SignedOut />);
     }
-  }, [loading, user, request]);
+  }, [loading, user, request, navigate]);
 
   if (loading || user?.role !== undefined) {
     return <></>;
