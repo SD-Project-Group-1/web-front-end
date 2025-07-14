@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Modal, Table, Form, Button } from "react-bootstrap";
+import { Modal, Form, Button } from "react-bootstrap";
 
 export default function DeviceModal({ show, handleClose, selectedRequest, setSelectedRequest }) {
   const [devices, setDevices] = useState(null);
@@ -163,8 +163,6 @@ export default function DeviceModal({ show, handleClose, selectedRequest, setSel
         device_return_condition: retState ?? undefined,
         device_id: removeDev ? null : device?.device_id ?? undefined
       };
-
-      console.log("payload", payload);
 
       const response = await fetch(`/api/borrow/update/${id}`, {
         method: "PATCH",

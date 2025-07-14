@@ -5,7 +5,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import Home from "./routes/home/home";
 import Login from "./routes/login/login";
 import Profile from "./routes/profile/profile";
-import Request from "./routes/request/request";
 import Signup from "./routes/signup/signup";
 import Data from "./routes/admin/data/data";
 import Manage from "./routes/admin/manage/manage";
@@ -21,7 +20,6 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/request" element={<Request />} />
 
       <Route path="/profile" element={<Profile />} />
       <Route path="/admin/profile/:adminId" element={<Profile />} />
