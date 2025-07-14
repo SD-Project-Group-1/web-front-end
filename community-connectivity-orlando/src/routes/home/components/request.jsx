@@ -19,13 +19,13 @@ export default function Request({ request }) {
         <div>
           <p><strong>Pickup Location</strong></p>
           <p>
-            {request.device.location.street_address}
+            {request.device?.location?.street_address ?? "Unset"}
           </p>
         </div>
         <div>
           <p><strong>Device</strong></p>
           <p>
-            {request.device.make} {request.device.model} ({request.device.type})
+            {request.device ? `${request.device.make} ${request.device.model} (${request.device.type})` : "Not set"}
           </p>
         </div>
         <div>
