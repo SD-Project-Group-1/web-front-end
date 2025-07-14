@@ -17,7 +17,14 @@ function Home() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (user?.role && user.role !== "user") {
+      navigate("/admin");
+      return;
+    }
+
     const getRequest = async () => {
+      if (!user) return;
+
       const response = await fetch(`/api/borrow/requested/${user.id}`);
 
       if (!response.ok) {
@@ -28,8 +35,8 @@ function Home() {
 
       setRequest(await response.json());
     }
-    setSignedIn(user !== null);
 
+    setSignedIn(user !== null);
 
     if (user && request) {
       setAfterEl(<Request request={request} />);
@@ -41,13 +48,8 @@ function Home() {
     }
   }, [loading, user, request]);
 
-  if (loading) {
+  if (loading || user.role !== "user") {
     return <></>;
-  }
-
-  if (user?.role && user.role !== "user") {
-    navigate("/admin");
-    return;
   }
 
   return (

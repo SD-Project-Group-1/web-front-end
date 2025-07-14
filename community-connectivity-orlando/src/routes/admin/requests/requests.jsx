@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Button, Container, Modal } from "react-bootstrap";
+import { Button, Container, Form, Modal, Table } from "react-bootstrap";
 import "./requests.scss";
 import CustomTable from "../../../components/table/customTable";
 import { Link } from "react-router-dom";
+import DeviceModal from "./components/deviceModal";
 
 function Requests() {
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -67,67 +68,27 @@ function Requests() {
     }
   }
 
-  const approveRequest = async () => {
-    const id = selectedRequest.borrow_id;
-
-    if (!id || typeof id !== "number") {
-      alert("Something went wrong! Alert a dev!");
-      console.error("Something is wrong with the request object.", selectedRequest);
-      return;
-    }
-
-    const payload = {
-      borrow_status: "Scheduled",
-      return_date: new Date(Date.now() + (14 * 24 * 60 * 60 * 1000)),
-      device_return_condition: null
-    }
-
-    const response = await fetch(`/api/borrow/update/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(payload),
-      headers: [["Content-Type", "application/json"]]
-    });
-
-    if (!response.ok) {
-      alert("Something went wrong!");
-      console.error(response, await response.text());
-      return;
-    }
-
-    alert("Approved!");
-  }
-
-  const denyRequest = async () => {
-    const id = selectedRequest.borrow_id;
-
-    if (!id || typeof id !== "number") {
-      alert("Something went wrong! Alert a dev!");
-      console.error("Something is wrong with the request object.", selectedRequest);
-      return;
-    }
-
-    const payload = {
-      borrow_status: "Cancelled",
-      return_date: null,
-      device_return_condition: null
-    }
-
-    const response = await fetch(`/api/borrow/update/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(payload),
-      headers: [["Content-Type", "application/json"]],
-    });
-
-    if (!response.ok) {
-      alert("Something went wrong!");
-      console.error(response, await response.text());
-      return;
-    }
-
-    alert("Cancelled!");
-  }
-
   useEffect(() => {
+    const formatter = (date) => {
+      const options = {
+        weekday: "short",
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true
+      };
+
+      const formatter = new Intl.DateTimeFormat("en-US", options);
+
+      const parts = formatter.formatToParts(date);
+      const dateStr = parts.filter(p => ["weekday", "month", "day", "year"].includes(p.type)).map(p => p.value).join(" ");
+      const timeStr = parts.filter(p => ["hour", "minute"].includes(p.type)).map(p => p.value).join(":").toLowerCase() + " " + parts.find(x => x.type === "dayPeriod").value;
+
+      return `${dateStr} ${timeStr}`;
+    }
+
     (async () => {
       const urlParams = new URLSearchParams();
 
@@ -156,17 +117,17 @@ function Requests() {
         user_id: x.user?.user_id ?? "DELETED",
         borrow_status: x.borrow_status?.replace("_", " ") ?? "",
         name: x.user ? x.user.first_name + " " + x.user.last_name : "DELETED",
-        borrow_date: new Date(x.borrow_date).toDateString(),
-        return_date: x.return_date ? "" : new Date(x.return_date).toDateString(),
-        location_nickname: x.device.location.location_nickname,
-        device: `${x.device.brand} ${x.device.make} ${x.device.model} (${x.device.type})`,
-        device_serial_number: x.device.serial_number
+        borrow_date: formatter(new Date(x.borrow_date)),
+        return_date: x.return_date ? "" : formatter(new Date(x.return_date)),
+        location_nickname: x.device?.location?.location_nickname ?? "Not set",
+        device: x.device ? `${x.device.brand} ${x.device.make} ${x.device.model} (${x.device.type})` : "Not set",
+        device_serial_number: x.device?.serial_number ?? ""
       }));
 
       setRequests(mapped);
       setLoading(false);
     })();
-  }, [page, pageSize, query, sortField, sortDir]);
+  }, [page, pageSize, query, sortField, sortDir, selectedRequest]);
 
   const handleRowClick = (req) => {
     setSelectedRequest(req);
@@ -204,55 +165,9 @@ function Requests() {
 
         <CustomTable data={requests} columns={columns} paging={paging} sorting={sorting} />
       </Container>
-
-      <Modal
-        show={showModal}
-        onHide={handleClose}
-        centered
-        contentClassName="custom-modal"
-      >
-        <Modal.Header closeButton className="modal-header-custom">
-          <Modal.Title className="modal-title-custom">
-            Device Approval
-          </Modal.Title>
-        </Modal.Header>
-
-        <Modal.Body className="modal-body-custom">
-          {selectedRequest && (
-            <>
-              <p>
-                <strong>Name:</strong> {selectedRequest.first}{" "}
-                {selectedRequest.last}
-              </p>
-              <p>
-                <strong>Pickup Date:</strong> {selectedRequest.date}
-              </p>
-              <p>
-                <strong>Pickup Location:</strong> {selectedRequest.location}
-              </p>
-              <p>
-                <strong>Device Type:</strong> {selectedRequest.device}
-              </p>
-              <p>
-                <strong>Serial #:</strong> {selectedRequest.serial}
-              </p>
-
-              <label>Set Device</label>
-              <input
-                type="text"
-                className="form-control my-3 search-input"
-                placeholder="Search Device"
-              />
-            </>
-          )}
-        </Modal.Body>
-
-        <Modal.Footer className="modal-footer-custom">
-          <Button className="modal-btn" onClick={approveRequest}>Approve</Button>
-          <Button className="modal-btn" onClick={denyRequest}>Deny</Button>
-        </Modal.Footer>
-      </Modal>
-
+      {selectedRequest && (
+        <DeviceModal show={showModal} handleClose={handleClose} selectedRequest={selectedRequest} setSelectedRequest={setSelectedRequest} />
+      )}
       <Modal
         show={showSure}
         onHide={handleClose}
