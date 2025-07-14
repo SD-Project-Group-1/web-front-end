@@ -48,7 +48,7 @@ function Home() {
     }
   }, [loading, user, request]);
 
-  if (loading || user.role !== "user") {
+  if (loading || user?.role !== undefined) {
     return <></>;
   }
 
