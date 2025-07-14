@@ -1,0 +1,62 @@
+@import "../../_variables.scss";
+
+.reset-wrapper {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: $bg-color-primary;
+}
+
+.reset-card-title {
+  div {
+    text-wrap: 0;
+    font-size: 40px;
+  }
+}
+
+.reset-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+  border: none;
+  border-radius: 0.75rem;
+  background-color: $bg-color-second;
+}
+
+// Mobile responsiveness
+@media (max-width: 480px) {
+  .reset-wrapper {
+    padding: 0.25rem;
+  }
+  
+  .reset-card {
+    padding: 1rem;
+    margin: 0.25rem;
+  }
+  
+  .reset-card-title {
+    div {
+      font-size: 24px;
+    }
+  }
+}
+
+.color {
+  color: $primary-text;
+}
+
+.white {
+  color: $textbox-white;
+}
+
+.btn-color {
+  background-color: $primary-color;
+  color: black;
+}
+
+.btn-color:hover {
+  background-color: $button-hover;
+  color: black;
+} 
