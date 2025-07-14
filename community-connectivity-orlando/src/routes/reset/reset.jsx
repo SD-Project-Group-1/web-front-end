@@ -5,19 +5,18 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 function Reset() {
   const navigate = useNavigate();
-  
+
   const [searchParams] = useSearchParams();
-  
+
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [token, setToken] = useState("");
 
   useEffect(() => {
-    // Get token from query string
     const getToken = searchParams.get('token');
-    
+
     if (getToken) {
       setToken(getToken);
     } else {
@@ -83,7 +82,7 @@ function Reset() {
           <div className="text-center mb-4 color reset-card-title">
             <Card.Subtitle className="mb-2">Reset Password</Card.Subtitle>
           </div>
-          
+
           <div className="text-center mb-3">
             <p className="white">Please enter your new password below.</p>
           </div>
