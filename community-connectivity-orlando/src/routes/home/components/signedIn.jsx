@@ -2,6 +2,7 @@ import styles from "../home.module.scss";
 import { Button, Alert, Container } from "react-bootstrap";
 import { useState, useContext, useEffect } from "react";
 import { UserContext } from "../../../context/userContext";
+import { useNavigate } from "react-router-dom";
 
 export default function SignedIn() {
   const { user } = useContext(UserContext);
@@ -14,6 +15,8 @@ export default function SignedIn() {
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [locations, setLocations] = useState([]);
+
+  const navigate = useNavigate();
 
   const getLocations = async () => {
     const response = await fetch("/api/locations/getall");
@@ -50,6 +53,11 @@ export default function SignedIn() {
       return;
     }
 
+    if (date.valueOf() > Date.now() + (30 * 24 * 60 * 60 * 1000)) {
+      setErrorMessage("Cannot schedule further than 30 days ahead!");
+      return;
+    }
+
     try {
       const response = await fetch("/api/borrow/create", {
         method: "POST",
@@ -64,6 +72,7 @@ export default function SignedIn() {
 
       if (response.ok) {
         setSuccessMessage("Request submitted successfully!");
+        setTimeout(() => navigate(0), 3000);
       } else {
         const errorText = await response.text();
         console.error(response);

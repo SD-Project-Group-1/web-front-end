@@ -8,15 +8,19 @@ import { UserContext } from "../../context/userContext";
 import styles from "./adminNavbar.module.scss";
 
 export default function AdminNavbar() {
-  const { user } = useContext(UserContext);
+  const { user, loading } = useContext(UserContext);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!user) {
+    if (!loading && !user) {
       navigate("/");
       return;
     }
-  }, [user])
+  }, [user, loading, navigate])
+
+  if (loading) {
+    return <></>;
+  }
 
   return (
     <div>
