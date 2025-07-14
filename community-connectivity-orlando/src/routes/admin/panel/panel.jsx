@@ -100,7 +100,7 @@ function Panel() {
         requestData[i] = {
           first: data[i].user?.first_name,
           last: data[i].user?.last_name,
-          device: `${data[i].device.brand} ${data[i].device.make} ${data[i].device.model}`,
+          device: data[i].device ? `${data[i].device.brand} ${data[i].device.make} ${data[i].device.model}` : "Not Set",
         };
       }
       setDevRequests(requestData);

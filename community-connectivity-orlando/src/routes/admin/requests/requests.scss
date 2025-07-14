@@ -27,30 +27,6 @@ input[type="search"]::placeholder {
   }
 }
 
-
-.table-custom {
-  background-color: #001f3f;
-  color: white;
-  width: 100%;
-  border-collapse: collapse;
-  border-radius: 8px;
-  overflow: hidden;
-
-  thead {
-    background-color: #dee2e6;
-    color: #212529;
-  }
-
-  tbody tr {
-    background-color: #012840;
-    color: white;
-
-    &:hover {
-      background-color: #01497c;
-    }
-  }
-}
-
 .custom-modal {
   .modal-header-custom {
     background-color: #2b2b2b;
