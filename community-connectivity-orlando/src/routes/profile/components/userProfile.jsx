@@ -14,6 +14,30 @@ export default function UserProfile({ user }) {
     navigate("/");
   };
 
+  const deleteAccount = async () => {
+    try {
+      const hasRequest = await fetch(`api/borrow/requested/${user.id}`, {
+        method: "GET",
+      });
+
+      if (hasRequest == null) {
+        alert("Cannot delete account with active request");
+        return;
+      }
+
+      const responce = await fetch(`api/user/delete/${user.id}`, {
+        method: "DELETE",
+      });
+      if (!responce.ok) {
+        alert("An error has occured while trying to delete account.");
+      }
+      logout();
+      navigate(0);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div className={`${styles.container}`}>
       <div className={`${styles["user-card"]}`}>
@@ -66,7 +90,7 @@ export default function UserProfile({ user }) {
           <h1>Account Actions</h1>
           <Button>Reset Password</Button>
           <Button onClick={logout}>Logout</Button>
-          <Button>Delete Account</Button>
+          <Button onClick={deleteAccount}>Delete Account</Button>
         </div>
       </div>
     </div>
