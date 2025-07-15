@@ -63,6 +63,7 @@ export default function SignedIn() {
     try {
       const payload = {
         user_id: user.id,
+        preferred_type: deviceType === "" ? undefined : deviceType,
         borrow_date: pickupDateTime,
         location_id: pickupLocation,
         reason_for_borrow: reason,
@@ -106,6 +107,8 @@ export default function SignedIn() {
 
       const { data } = await response.json();
 
+      console.log(data);
+
       setDeviceTypes(data.filter(x => x.available).map(x => x.deviceType));
     } catch (error) {
       console.error("Failed to get avaialbe devices.", error);
@@ -136,6 +139,9 @@ export default function SignedIn() {
         Monday-Friday: 10 am to 5 pm
       </p>
       <Form className="row g-3 align-items-center">
+        {pickupLocation !== -1 && deviceTypes.length === 0 && (
+          <p class="text-danger col-12 text-center">No devices are available at this locations!</p>
+        )}
 
         <div className="col-md-6">
           <Form.Select
