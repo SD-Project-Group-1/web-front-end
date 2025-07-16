@@ -17,11 +17,13 @@ import {
 } from "chart.js";
 import styles from "../../home/home.module.scss";
 import CustomTable from "../../../components/table/customTable";
+import { useTableState } from "../../../hooks/useTableState";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 export default function Profile() {
   const [users, setUsers] = useState([]);
+  const [admins, setAdmins] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState("table");
@@ -30,25 +32,56 @@ export default function Profile() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [newZip, setNewZip] = useState("");
   const [newLocation, setNewLocation] = useState("");
-  // const [newAdmin, setNewAdmin] = useState({
-  //   first_name: "",
-  //   last_name: "",
-  //   email: "",
-  //   password: "",
-  //   role: "staff",
-  // });
 
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [count, setCount] = useState(0);
+  const [newAdmin, setNewAdmin] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    password: "",
+    role: "staff",
+  });
 
-  const [query, setQuery] = useState("");
+  const adminTableState = useTableState("admin_id", "desc");
+  const userTableState = useTableState("user_id", "desc");
 
-  const [sortField, setSortField] = useState("user_id");
-  const [sortDir, setSortDir] = useState("desc");
+  const adminColumns = [
+    {
+      noSort: true, text: "Actions", formatter: (admin) => (
+        <>
+          {JSON.stringify(admin)}
+        </>
+      )
+    },
+  ]
 
-  const paging = { page, pageSize, setPage, setPageSize, count };
-  const sorting = { sortField, sortDir, setSortField, setSortDir }
+
+  const fetchAdmins = useCallback(async () => {
+    try {
+      const urlParams = new URLSearchParams();
+
+      urlParams.append("page", adminTableState.paging.page);
+      urlParams.append("pageSize", adminTableState.paging.pageSize);
+      urlParams.append("sortBy", adminTableState.sorting.sortField);
+      urlParams.append("sortDir", adminTableState.sorting.sortDir);
+
+      if (adminTableState.query && adminTableState.query !== "") {
+        urlParams.append("q", adminTableState.query);
+      }
+
+      setIsLoading(true);
+      const res = await fetch(`/api/admin/getall?${urlParams}`);
+      const { data, count } = await res.json();
+      for (const user of data) {
+        user.role = "user";
+      }
+      setAdmins(data);
+      adminTableState.paging.setCount(count)
+    } catch (err) {
+      console.error("Failed to fetch users");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [adminTableState.paging.page, adminTableState.paging.page, adminTableState.sortField, adminTableState.sorting.sortDir, adminTableState.paging.count]);
 
   const columns = [
     { text: "User ID", dataField: "user_id" },
@@ -84,19 +117,19 @@ export default function Profile() {
         </>
       )
     },
-  ]
+  ];
 
   const fetchUsers = useCallback(async () => {
     try {
       const urlParams = new URLSearchParams();
 
-      urlParams.append("page", page);
-      urlParams.append("pageSize", pageSize);
-      urlParams.append("sortBy", sortField);
-      urlParams.append("sortDir", sortDir);
+      urlParams.append("page", userTableState.paging.page);
+      urlParams.append("pageSize", userTableState.paging.pageSize);
+      urlParams.append("sortBy", userTableState.sorting.sortField);
+      urlParams.append("sortDir", userTableState.sorting.sortDir);
 
-      if (query && query !== "") {
-        urlParams.append("q", query);
+      if (userTableState.query && userTableState.query !== "") {
+        urlParams.append("q", userTableState.query);
       }
 
       setIsLoading(true);
@@ -106,43 +139,24 @@ export default function Profile() {
         user.role = "user";
       }
       setUsers(data);
-      setCount(count)
+      userTableState.paging.setCount(count)
     } catch (err) {
       console.error("Failed to fetch users");
     } finally {
       setIsLoading(false);
     }
-  }, [page, pageSize, sortField, sortDir, query]);
+  }, [userTableState.paging.page, userTableState.paging.page, userTableState.sorting.sortField, userTableState.sorting.sortDir, userTableState.paging.count]);
 
   useEffect(() => {
     fetchUsers();
-  }, [page, pageSize, sortField, sortDir, count, query, fetchUsers]);
+    fetchAdmins();
+  }, [fetchAdmins, fetchUsers]);
 
   const zipCounts = users.reduce((acc, user) => {
     const zip = user.zip_code || "N/A";
     acc[zip] = (acc[zip] || 0) + 1;
     return acc;
   }, {});
-
-  // const incompleteUsers = users.filter(
-  //   (u) => !u.first_name || !u.last_name || !u.zip_code || !u.email || !u.city,
-  // );
-  //
-  // const duplicates = {
-  //   emails: users
-  //     .map((u) => u.email)
-  //     .filter((email, i, arr) => arr.indexOf(email) !== i),
-  //   zips: users
-  //     .map((u) => u.zip_code)
-  //     .filter((z, i, arr) => arr.indexOf(z) !== i && z),
-  // };
-  //
-  // const recentUsers = users.filter((u) => {
-  //   const dob = new Date(u.dob);
-  //   const now = new Date();
-  //   const diff = now - dob;
-  //   return diff < 7 * 24 * 60 * 60 * 1000;
-  // });
 
   const exportCSV = () => {
     const headers = [
@@ -238,7 +252,7 @@ export default function Profile() {
             className="w-75"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={e => e.key === "Enter" ? setQuery(searchTerm) : undefined}
+            onKeyDown={e => e.key === "Enter" ? userTableState.setQuery(searchTerm) : undefined}
           />
           <Form.Select
             value={viewMode}
@@ -284,7 +298,8 @@ export default function Profile() {
 
               {viewMode === "table" && (
                 <div className="table-responsive">
-                  <CustomTable data={users} columns={columns} sorting={sorting} paging={paging} />
+                  <CustomTable data={admins} columns={adminColumns} sorting={adminTableState.sorting} paging={adminTableState.paging} />
+                  <CustomTable data={users} columns={columns} sorting={userTableState.sorting} paging={userTableState.paging} />
                 </div>
               )}
             </>
