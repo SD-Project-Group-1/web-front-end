@@ -12,36 +12,36 @@ function Login() {
 
   const { setUser } = useContext(UserContext);
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const payload = {
-    email,
-    password,
-  };
+    const payload = {
+      email,
+      password,
+    };
 
-  try {
-    const response = await fetch("/api/user/signin", {
-      method: "POST",
-      body: JSON.stringify(payload),
-      headers: [["Content-Type", "application/json"]],
-    });
+    try {
+      const response = await fetch("/api/user/signin", {
+        method: "POST",
+        body: JSON.stringify(payload),
+        headers: [["Content-Type", "application/json"]],
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Login failed:", errorData.message || response.statusText);
-      alert("Login failed: " + (errorData.message || "Invalid credentials"));
-      return;
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Login failed:", errorData.message || response.statusText);
+        alert("Login failed: " + (errorData.message || "Invalid credentials"));
+        return;
+      }
+
+      const data = await response.json();
+      setUser(data.userPayload);
+      navigate("/");
+    } catch (err) {
+      console.error("Network or server error:", err);
+      alert("Server error occurred. Please try again later.");
     }
-
-    const data = await response.json();
-    setUser(data.userPayload);
-    navigate("/");
-  } catch (err) {
-    console.error("Network or server error:", err);
-    alert("Server error occurred. Please try again later.");
-  }
-};
+  };
 
   return (
     <div className="login-wrapper">
@@ -80,7 +80,7 @@ function Login() {
             <Link to="/admin/login" className="color">
               Admin Log in
             </Link>
-            <Link to="/reset/requestReset" className="color">
+            <Link to="/reset/request-reset" className="color">
               Password Reset
             </Link>
           </div>
