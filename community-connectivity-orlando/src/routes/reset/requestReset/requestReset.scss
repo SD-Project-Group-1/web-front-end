@@ -1,4 +1,4 @@
-@import "../../_variables.scss";
+@import "../../../_variables.scss";
 
 .reset-wrapper {
   min-height: 100vh;
@@ -41,6 +41,10 @@
       font-size: 24px;
     }
   }
+}
+
+.reset-text {
+  font-size: 1rem;
 }
 
 .color {
