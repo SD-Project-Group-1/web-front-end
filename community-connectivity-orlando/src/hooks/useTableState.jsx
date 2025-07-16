@@ -11,6 +11,31 @@ export function useTableState(initialSortField = "user_id", initialSortDir = "de
   const paging = { page, pageSize, setPage, setPageSize, count, setCount };
   const sorting = { sortField, sortDir, setSortField, setSortDir };
 
-  return { paging, sorting, query, setQuery };
+  const fetchTable = useCallback(async (url) => {
+    const params = new URLSearchParams();
+    params.append("page", page);
+    params.append("pageSize", pageSize);
+    params.append("sortBy", sortField);
+    params.append("sortDir", sortDir);
+    if (query) params.append("q", query);
+
+    const res = await fetch(`${url}?${params}`);
+
+    if (!res.ok) {
+      console.error("Request: ", `${url}?${params}`);
+      console.error("Response: ", res);
+      console.error("Text: ", await res.text());
+
+      throw new Error(`Could not get data!`)
+    }
+
+    const { data, count } = await res.json();
+
+    setCount(count);
+
+    return data;
+  }, [page, pageSize, sortField, sortDir, query]);
+
+  return { paging, sorting, query, setQuery, fetchTable };
 }
 
