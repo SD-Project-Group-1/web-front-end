@@ -7,6 +7,7 @@ import SignedIn from "./components/signedIn";
 import Request from "./components/request";
 import { UserContext } from "../../context/userContext";
 import { useNavigate } from "react-router-dom";
+import { Container } from "react-bootstrap";
 
 function Home() {
   const [signedIn, setSignedIn] = useState(false);
@@ -24,8 +25,6 @@ function Home() {
 
     const getRequest = async () => {
       if (loading || !user) return;
-
-      console.log(user);
 
       const response = await fetch(`/api/borrow/requested/${user.id}`);
 
@@ -55,7 +54,7 @@ function Home() {
   }
 
   return (
-    <div className={`${styles.container}`}>
+    <Container className={`${styles.container}`}>
       <UserNavbar signedIn={signedIn} />
       <h1>Orlando City Connectivity Portal</h1>
       <p>
@@ -66,7 +65,7 @@ function Home() {
         form, and come pick up your device on your scheduled date!
       </p>
       {afterEl}
-    </div>
+    </Container>
   );
 }
 
