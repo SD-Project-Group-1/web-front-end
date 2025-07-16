@@ -2,18 +2,24 @@ import { Link, Outlet, useNavigate } from "react-router-dom";
 import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { UserContext } from "../../context/userContext";
 
 import styles from "./adminNavbar.module.scss";
 
 export default function AdminNavbar() {
-  const { user } = useContext(UserContext);
+  const { user, loading } = useContext(UserContext);
   const navigate = useNavigate();
 
-  if (!user) {
-    navigate("/");
-    return;
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/");
+      return;
+    }
+  }, [user, loading, navigate])
+
+  if (loading) {
+    return <></>;
   }
 
   return (

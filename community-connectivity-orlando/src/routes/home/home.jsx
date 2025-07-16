@@ -7,6 +7,7 @@ import SignedIn from "./components/signedIn";
 import Request from "./components/request";
 import { UserContext } from "../../context/userContext";
 import { useNavigate } from "react-router-dom";
+import { Container } from "react-bootstrap";
 
 function Home() {
   const [signedIn, setSignedIn] = useState(false);
@@ -16,19 +17,26 @@ function Home() {
   const { user, loading } = useContext(UserContext);
   const navigate = useNavigate();
 
-  const getRequest = async () => {
-    const response = await fetch(`/api/borrow/requested/${user.id}`);
-
-    if (!response.ok) {
-      console.log(response, await response.text());
-      alert("Failed to get the request");
+  useEffect(() => {
+    if (user?.role && user.role !== "user") {
+      navigate("/admin");
       return;
     }
 
-    setRequest(await response.json());
-  }
+    const getRequest = async () => {
+      if (loading || !user) return;
 
-  useEffect(() => {
+      const response = await fetch(`/api/borrow/requested/${user.id}`);
+
+      if (!response.ok) {
+        console.error(response, await response.text());
+        alert("Failed to get the request");
+        return;
+      }
+
+      setRequest(await response.json());
+    }
+
     setSignedIn(user !== null);
 
     if (user && request) {
@@ -39,19 +47,14 @@ function Home() {
     } else {
       setAfterEl(<SignedOut />);
     }
-  }, [loading, user, request]);
+  }, [loading, user, request, navigate]);
 
-  if (loading) {
+  if (loading || user?.role !== undefined) {
     return <></>;
   }
 
-  if (user?.role && user.role !== "user") {
-    navigate("/admin");
-    return;
-  }
-
   return (
-    <div className={`${styles.container}`}>
+    <Container className={`${styles.container}`}>
       <UserNavbar signedIn={signedIn} />
       <h1>Orlando City Connectivity Portal</h1>
       <p>
@@ -62,7 +65,7 @@ function Home() {
         form, and come pick up your device on your scheduled date!
       </p>
       {afterEl}
-    </div>
+    </Container>
   );
 }
 

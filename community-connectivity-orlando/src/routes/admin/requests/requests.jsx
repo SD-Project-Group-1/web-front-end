@@ -1,60 +1,133 @@
-import React, { useState } from "react";
-import { Button, Modal } from "react-bootstrap";
+import { useEffect, useState } from "react";
+import { Button, Container, Form, Modal, Table } from "react-bootstrap";
 import "./requests.scss";
+import CustomTable from "../../../components/table/customTable";
+import { Link } from "react-router-dom";
+import DeviceModal from "./components/deviceModal";
 
 function Requests() {
-  const [search, setSearch] = useState("");
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  const requests = [
+  const [showSure, setSure] = useState(false);
+
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const [query, setQuery] = useState("");
+  const [inputQuery, setInputQuery] = useState("");
+
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [count, setCount] = useState(0);
+
+  const [sortField, setSortField] = useState("borrow_status");
+  const [sortDir, setSortDir] = useState("asc");
+
+  const paging = { page, pageSize, setPage, setPageSize, count };
+  const sorting = { sortField, sortDir, setSortField, setSortDir }
+
+  const columns = [
     {
-      first: "Larry",
-      last: "Hinderson",
-      date: "06/30/2025",
-      location: "Winter Park",
-      device: "Tablet",
-      serial: "001",
+      text: "User", dataField: "name", formatter: row => (
+        row.user_id === "DELETED" ? "DELETED" : <Link to={`/profile/${row.user_id}`} className="text-white text-decoration-none link-primary">{row.name}</Link>
+      )
     },
+    { text: "Status", dataField: "borrow_status" },
+    { text: "Check Out", dataField: "borrow_date" },
+    { text: "Check In", dataField: "return_date" },
+    { text: "Device", dataField: "device" },
+    { text: "Serial #", dataField: "device_serial_number" },
     {
-      first: "John",
-      last: "Smith",
-      date: "06/30/2025",
-      location: "Winter Spring",
-      device: "Laptop",
-      serial: "-",
-    },
-    {
-      first: "Cid",
-      last: "Kagenou",
-      date: "06/30/2025",
-      location: "Oviedo",
-      device: "Tablet",
-      serial: "099",
-    },
-    {
-      first: "Joe",
-      last: "Shmoe",
-      date: "06/30/2025",
-      location: "Winter Park",
-      device: "Laptop",
-      serial: "055",
-    },
-    {
-      first: "Nileson",
-      last: "Velez",
-      date: "06/30/2025",
-      location: "Winter Spring",
-      device: "Tablet",
-      serial: "102",
-    },
+      noSort: true, text: "Actions", formatter: (row) => (
+        <>
+          <Button onClick={() => handleRowClick(row)} className="border-0 fw-bold">EDIT</Button>
+          <Button onClick={() => { setSelectedRequest(row); setSure(true) }} className="bg-danger border-0 fw-bold">DELETE</Button>
+        </>
+      )
+    }
   ];
 
-  const filtered = requests.filter((req) =>
-    Object.values(req).some((val) =>
-      val.toLowerCase().includes(search.toLowerCase())
-    )
-  );
+  const deleteRequest = async () => {
+    try {
+      const response = await fetch(`/api/borrow/delete/${selectedRequest.borrow_id}`, {
+        method: "DELETE"
+      });
+
+      if (!response.ok) {
+        console.error("Could not get request.\n", response, '\n', await response.text());
+        alert("Could not delete!");
+      }
+      setQuery(" ");
+      setQuery("");
+    } catch (error) {
+      console.error("Could not get request.\n", error);
+      alert("Could not delete!");
+    } finally {
+      setSure(false);
+    }
+  }
+
+  useEffect(() => {
+    const formatter = (date) => {
+      const options = {
+        weekday: "short",
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true
+      };
+
+      const formatter = new Intl.DateTimeFormat("en-US", options);
+
+      const parts = formatter.formatToParts(date);
+      const dateStr = parts.filter(p => ["weekday", "month", "day", "year"].includes(p.type)).map(p => p.value).join(" ");
+      const timeStr = parts.filter(p => ["hour", "minute"].includes(p.type)).map(p => p.value).join(":").toLowerCase() + " " + parts.find(x => x.type === "dayPeriod").value;
+
+      return `${dateStr} ${timeStr}`;
+    }
+
+    (async () => {
+      const urlParams = new URLSearchParams();
+
+      urlParams.append("page", page);
+      urlParams.append("pageSize", pageSize);
+      urlParams.append("sortBy", sortField);
+      urlParams.append("sortDir", sortDir);
+
+      if (query && query !== "") {
+        urlParams.append("q", query);
+      }
+
+      const response = await fetch(`/api/borrow/getall?${urlParams}`);
+
+      if (!response.ok) {
+        alert("Could not get requests!");
+        console.error(response);
+        return;
+      }
+
+      const { data, count } = await response.json();
+      setCount(count);
+
+      const mapped = data.map(x => ({
+        borrow_id: x.borrow_id,
+        user_id: x.user?.user_id ?? "DELETED",
+        borrow_status: x.borrow_status?.replace("_", " ") ?? "",
+        name: x.user ? x.user.first_name + " " + x.user.last_name : "DELETED",
+        borrow_date: formatter(new Date(x.borrow_date)),
+        return_date: x.return_date ? "" : formatter(new Date(x.return_date)),
+        location_nickname: x.device?.location?.location_nickname ?? "Not set",
+        device: x.device ? `${x.device.brand} ${x.device.make} ${x.device.model} (${x.device.type})` : "Not set",
+        device_serial_number: x.device?.serial_number ?? ""
+      }));
+
+      setRequests(mapped);
+      setLoading(false);
+    })();
+  }, [page, pageSize, query, sortField, sortDir, selectedRequest]);
 
   const handleRowClick = (req) => {
     setSelectedRequest(req);
@@ -63,100 +136,52 @@ function Requests() {
 
   const handleClose = () => {
     setShowModal(false);
+    setSure(false);
     setSelectedRequest(null);
   };
 
+  if (loading) {
+    return (
+      <div className="text-center text-light my-4">
+        <span className="spinner-border text-warning"></span>
+        <p>Loading requests data...</p>
+      </div>);
+  }
+
   return (
     <div className="container-fluid requests-container">
-      <h2 className="requests-title">Requests</h2>
+      <Container>
+        <h2 className="requests-title">Requests</h2>
+        <div className="requests-search mb-3">
+          <input
+            type="search"
+            className="form-control search-bar"
+            placeholder="Search requests"
+            value={inputQuery}
+            onKeyDown={x => x.key === "Enter" ? setQuery(inputQuery) : undefined}
+            onChange={x => setInputQuery(x.target.value)}
+          />
+        </div>
 
-      <div className="requests-search mb-3">
-        <input
-          type="search"
-          className="form-control search-bar"
-          placeholder="Search requests"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
-      <div className="table-responsive">
-        <table className="table-custom">
-          <thead>
-            <tr>
-              <th>First Name</th>
-              <th>Last Name</th>
-              <th>Date</th>
-              <th>Location</th>
-              <th>Device Type</th>
-              <th>Serial #</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((req, i) => (
-              <tr
-                key={i}
-                onClick={() => handleRowClick(req)}
-                style={{ backgroundColor: "#012840", color: "white" }}
-              >
-                <td>{req.first}</td>
-                <td>{req.last}</td>
-                <td>{req.date}</td>
-                <td>{req.location}</td>
-                <td>{req.device}</td>
-                <td>{req.serial}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
+        <CustomTable data={requests} columns={columns} paging={paging} sorting={sorting} />
+      </Container>
+      {selectedRequest && (
+        <DeviceModal show={showModal} handleClose={handleClose} selectedRequest={selectedRequest} setSelectedRequest={setSelectedRequest} />
+      )}
       <Modal
-        show={showModal}
+        show={showSure}
         onHide={handleClose}
         centered
-        contentClassName="custom-modal"
       >
-        <Modal.Header closeButton className="modal-header-custom">
-          <Modal.Title className="modal-title-custom">
-            Device Approval
-          </Modal.Title>
+        <Modal.Header>
+          <Modal.Title className="fw-bold">Are you sure you want to delete this request?</Modal.Title>
         </Modal.Header>
-
-        <Modal.Body className="modal-body-custom">
-          {selectedRequest && (
-            <>
-              <p>
-                <strong>Name:</strong> {selectedRequest.first}{" "}
-                {selectedRequest.last}
-              </p>
-              <p>
-                <strong>Pickup Date:</strong> {selectedRequest.date}
-              </p>
-              <p>
-                <strong>Pickup Location:</strong> {selectedRequest.location}
-              </p>
-              <p>
-                <strong>Device Type:</strong> {selectedRequest.device}
-              </p>
-              <p>
-                <strong>Serial #:</strong> {selectedRequest.serial}
-              </p>
-
-              <input
-                type="text"
-                className="form-control my-3 search-input"
-                placeholder="Search Device"
-              />
-            </>
-          )}
-        </Modal.Body>
-
-        <Modal.Footer className="modal-footer-custom">
-          <Button className="modal-btn">Approve</Button>
-          <Button className="modal-btn">Deny</Button>
+        <Modal.Footer>
+          <Button className="bg-danger fw-bold border-danger" onClick={deleteRequest}>Yes</Button>
+          <Button className="fw-bold" onClick={() => setSure(false)}>No</Button>
         </Modal.Footer>
       </Modal>
+
     </div>
   );
 }

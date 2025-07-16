@@ -1,23 +1,21 @@
-@import "../../_variables.scss";
+@import "../../../_variables.scss";
 
-.login-wrapper {
-  height: 100vh;
+.reset-wrapper {
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
   background-color: $bg-color-primary;
 }
 
-.login-card-title {
-
-  h2,
+.reset-card-title {
   div {
     text-wrap: 0;
     font-size: 40px;
   }
 }
 
-.login-card {
+.reset-card {
   width: 100%;
   max-width: 400px;
   padding: 2rem;
@@ -25,6 +23,28 @@
   border: none;
   border-radius: 0.75rem;
   background-color: $bg-color-second;
+}
+
+// Mobile responsiveness
+@media (max-width: 480px) {
+  .reset-wrapper {
+    padding: 0.25rem;
+  }
+  
+  .reset-card {
+    padding: 1rem;
+    margin: 0.25rem;
+  }
+  
+  .reset-card-title {
+    div {
+      font-size: 24px;
+    }
+  }
+}
+
+.reset-text {
+  font-size: 1rem;
 }
 
 .color {
@@ -43,10 +63,4 @@
 .btn-color:hover {
   background-color: $button-hover;
   color: black;
-}
-
-.links-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+} 

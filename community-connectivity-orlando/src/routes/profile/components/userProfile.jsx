@@ -1,8 +1,8 @@
-import { Button } from "react-bootstrap";
 import styles from "../profile.module.scss";
 import { useContext } from "react";
 import { UserContext } from "../../../context/userContext";
 import { useNavigate } from "react-router-dom";
+import { Button } from "react-bootstrap";
 
 export default function UserProfile({ user }) {
   const navigate = useNavigate();
@@ -14,6 +14,49 @@ export default function UserProfile({ user }) {
     navigate("/");
   };
 
+  const startReset = async () => {
+    const response = await fetch("/api/auth/request-reset", {
+      method: "POST",
+      body: JSON.stringify({ email: user.email }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+
+    if (!response.ok) {
+      console.error(response);
+      alert("Could not make reset request!");
+      return;
+    }
+
+    alert("Reset sent. Please check your email: " + user.email);
+  }
+
+  const deleteAccount = async () => {
+    try {
+      const hasRequest = await fetch(`api/borrow/requested/${user.id}`, {
+        method: "GET",
+      });
+
+      if (hasRequest == null) {
+        alert("Cannot delete account with active request");
+        return;
+      }
+
+      const responce = await fetch(`api/user/delete/${user.id}`, {
+        method: "DELETE",
+      });
+
+      if (!responce.ok) {
+        alert("An error has occured while trying to delete account.");
+      }
+
+      navigate("/");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div className={`${styles.container}`}>
       <div className={`${styles["user-card"]}`}>
@@ -21,7 +64,10 @@ export default function UserProfile({ user }) {
         <p>UserID: {user.id}</p>
         <p>{user.phone}</p>
         <p>{user.email}</p>
-        <p>Age: {user.dob}</p>
+        <p>
+          Age: {new Date(Date.now()).getFullYear() -
+            new Date(user.dob).getFullYear()}
+        </p>
         <address>
           {user.street_address},<br />
           {user.city},<br />
@@ -61,9 +107,9 @@ export default function UserProfile({ user }) {
         </div>
         <div className={`${styles.actions}`}>
           <h1>Account Actions</h1>
-          <Button>Reset Password</Button>
+          <Button onClick={startReset}>Reset Password</Button>
           <Button onClick={logout}>Logout</Button>
-          <Button>Delete Account</Button>
+          <Button onClick={deleteAccount}>Delete Account</Button>
         </div>
       </div>
     </div>
