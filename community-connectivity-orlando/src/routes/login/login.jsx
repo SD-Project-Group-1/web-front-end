@@ -76,9 +76,14 @@ function Login() {
               <strong>Log in</strong>
             </Button>
           </Form>
-          <Link to="/admin/login" className="color">
-            Admin Log in
-          </Link>
+          <div className="links-row">
+            <Link to="/admin/login" className="color">
+              Admin Log in
+            </Link>
+            <Link to="/reset/requestReset" className="color">
+              Password Reset
+            </Link>
+          </div>
         </Card.Body>
       </Card>
     </div>
