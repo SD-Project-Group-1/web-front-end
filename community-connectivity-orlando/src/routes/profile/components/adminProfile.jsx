@@ -16,25 +16,20 @@ export default function AdminProfile({ admin }) {
 
   const deleteAccount = async () => {
     try {
-      const hasRequest = await fetch(`api/borrow/requested/${admin.admin_id}`, {
-        method: "GET",
+      const response = await fetch(`/api/admin/delete/${admin.admin_id}`, {
+        method: "DELETE",
       });
 
-      if (hasRequest == null) {
-        alert("Cannot delete account with active request");
+      if (!response.ok) {
+        console.error(response, "\n", await response.text());
+        alert("An error has occured while trying to delete account.");
         return;
       }
 
-      const responce = await fetch(`api/user/delete/${admin.admin_id}`, {
-        method: "DELETE",
-      });
-      if (!responce.ok) {
-        alert("An error has occured while trying to delete account.");
-      }
-      logout();
-      navigate(0);
+      navigate("/");
     } catch (error) {
       console.log(error);
+      alert("An error has occured while trying to delete account.");
     }
   };
 

@@ -46,11 +46,12 @@ export default function UserProfile({ user }) {
       const responce = await fetch(`api/user/delete/${user.id}`, {
         method: "DELETE",
       });
+
       if (!responce.ok) {
         alert("An error has occured while trying to delete account.");
       }
-      logout();
-      navigate(0);
+
+      navigate("/");
     } catch (error) {
       console.log(error);
     }

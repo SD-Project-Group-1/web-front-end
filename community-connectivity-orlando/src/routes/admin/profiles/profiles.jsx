@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Button,
   Card,
@@ -17,12 +17,14 @@ import {
 } from "chart.js";
 import styles from "../../home/home.module.scss";
 import CustomTable from "../../../components/table/customTable";
+import { useTableState } from "../../../hooks/useTableState";
+import { Link } from "react-router-dom";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 export default function Profile() {
   const [users, setUsers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [admins, setAdmins] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState("table");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -30,25 +32,62 @@ export default function Profile() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [newZip, setNewZip] = useState("");
   const [newLocation, setNewLocation] = useState("");
-  // const [newAdmin, setNewAdmin] = useState({
-  //   first_name: "",
-  //   last_name: "",
-  //   email: "",
-  //   password: "",
-  //   role: "staff",
-  // });
 
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [count, setCount] = useState(0);
+  const [adminModal, setAdminModal] = useState(false);
+  const [adminMessage, setAdminMessage] = useState(null);
+  const [adminErr, setAdminErr] = useState(false);
 
-  const [query, setQuery] = useState("");
+  const [newAdmin, setNewAdmin] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    password: "",
+    role: "staff",
+  });
 
-  const [sortField, setSortField] = useState("user_id");
-  const [sortDir, setSortDir] = useState("desc");
+  const createAdmin = async () => {
+    const response = await fetch(`/api/admin/create`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newAdmin)
+    });
 
-  const paging = { page, pageSize, setPage, setPageSize, count };
-  const sorting = { sortField, sortDir, setSortField, setSortDir }
+    if (!response.ok) {
+      console.error("Could not create admin.");
+      console.error(response);
+      console.error(await response.text());
+      setAdminErr(true);
+      setAdminMessage("Could not create admin!");
+
+      return;
+    }
+    setAdminMessage("Admin created!");
+    setAdminErr(false);
+
+    setTimeout(() => {
+      setAdminModal(false);
+      setAdminMessage(null);
+      adminFetch()
+    }, 3000);
+  }
+
+  const adminTableState = useTableState("admin_id", "desc");
+  const userTableState = useTableState("user_id", "desc");
+
+  const adminColumns = [
+    { text: "Admin ID", dataField: "admin_id" },
+    { text: "First Name", dataField: "first_name" },
+    { text: "Last Name", dataField: "last_name" },
+    { text: "Email", dataField: "email" },
+    { text: "Role", dataField: "role" },
+    {
+      text: "Profile", noSort: true, formatter: (row) => (
+        <>
+          <Link to={`/admin/profile/${row.admin_id}`}><Button>View</Button></Link>
+        </>
+      )
+    }
+  ]
 
   const columns = [
     { text: "User ID", dataField: "user_id" },
@@ -84,65 +123,26 @@ export default function Profile() {
         </>
       )
     },
-  ]
+  ];
 
-  const fetchUsers = useCallback(async () => {
-    try {
-      const urlParams = new URLSearchParams();
-
-      urlParams.append("page", page);
-      urlParams.append("pageSize", pageSize);
-      urlParams.append("sortBy", sortField);
-      urlParams.append("sortDir", sortDir);
-
-      if (query && query !== "") {
-        urlParams.append("q", query);
-      }
-
-      setIsLoading(true);
-      const res = await fetch(`/api/user/getall?${urlParams}`);
-      const { data, count } = await res.json();
-      for (const user of data) {
-        user.role = "user";
-      }
-      setUsers(data);
-      setCount(count)
-    } catch (err) {
-      console.error("Failed to fetch users");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [page, pageSize, sortField, sortDir, query]);
+  const adminFetch = adminTableState.fetchTable;
+  const userFetch = userTableState.fetchTable;
 
   useEffect(() => {
-    fetchUsers();
-  }, [page, pageSize, sortField, sortDir, count, query, fetchUsers]);
+    adminFetch("/api/admin/getall")
+      .then(data => setAdmins(data))
+      .catch(() => alert("Failed to fetch admin data!"));
+
+    userFetch("/api/user/getall")
+      .then(data => setUsers(data))
+      .catch(() => alert("Failed to fetch user data!"));
+  }, [adminFetch, userFetch, newAdmin]);
 
   const zipCounts = users.reduce((acc, user) => {
     const zip = user.zip_code || "N/A";
     acc[zip] = (acc[zip] || 0) + 1;
     return acc;
   }, {});
-
-  // const incompleteUsers = users.filter(
-  //   (u) => !u.first_name || !u.last_name || !u.zip_code || !u.email || !u.city,
-  // );
-  //
-  // const duplicates = {
-  //   emails: users
-  //     .map((u) => u.email)
-  //     .filter((email, i, arr) => arr.indexOf(email) !== i),
-  //   zips: users
-  //     .map((u) => u.zip_code)
-  //     .filter((z, i, arr) => arr.indexOf(z) !== i && z),
-  // };
-  //
-  // const recentUsers = users.filter((u) => {
-  //   const dob = new Date(u.dob);
-  //   const now = new Date();
-  //   const diff = now - dob;
-  //   return diff < 7 * 24 * 60 * 60 * 1000;
-  // });
 
   const exportCSV = () => {
     const headers = [
@@ -221,14 +221,6 @@ export default function Profile() {
       <Container className="mt-4">
         <div className="d-flex flex-column flex-md-row gap-2 justify-content-between align-items-start align-items-md-center mb-3">
           <h2 className={styles["page-title"]}>Profiles</h2>
-          <div className="d-flex flex-column flex-md-row gap-2">
-            <Button variant="secondary" onClick={exportCSV}>
-              Export Users CSV
-            </Button>
-            <Button variant="secondary" onClick={exportZipSummary}>
-              Export ZIP Summary
-            </Button>
-          </div>
         </div>
 
         <Form className="mb-3 d-flex flex-column flex-md-row gap-2" onSubmit={ev => ev.preventDefault()}>
@@ -238,57 +230,61 @@ export default function Profile() {
             className="w-75"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={e => e.key === "Enter" ? setQuery(searchTerm) : undefined}
+            onKeyDown={e => { if (e.key === "Enter") userTableState.setQuery(searchTerm); adminTableState.setQuery(searchTerm) }}
           />
-          <Form.Select
-            value={viewMode}
-            className="w-25"
-            onChange={(e) => setViewMode(e.target.value)}
+          <Button
+            className="w-25 fw-bold"
+            onClick={() => setAdminModal(true)}
           >
-            <option value="table">Table View</option>
-            <option value="group">ZIP Summary</option>
-            <option value="chart">ZIP Chart</option>
-          </Form.Select>
+            Add Admin
+          </Button>
+          {/* <Form.Select */}
+          {/*   value={viewMode} */}
+          {/*   className="w-25" */}
+          {/*   onChange={(e) => setViewMode(e.target.value)} */}
+          {/* > */}
+          {/*   <option value="table">Table View</option> */}
+          {/*   <option value="group">ZIP Summary</option> */}
+          {/*   <option value="chart">ZIP Chart</option> */}
+          {/* </Form.Select> */}
         </Form>
 
-        {isLoading
-          ? (
-            <div className="text-light text-center my-4">
-              <span className="spinner-border text-warning"></span>
-              <p>Loading users...</p>
+        {viewMode === "group" && (
+          <div className="mb-4">
+            <h5 className="text-light">Users by ZIP</h5>
+            <ul className="text-light">
+              {Object.entries(zipCounts).map(([zip, count]) => (
+                <li key={zip}>
+                  <strong>{zip}</strong>: {count}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {viewMode === "chart" && (
+          <Card className="bg-dark text-white mb-4">
+            <Card.Body>
+              <h5>ZIP Code Distribution</h5>
+              <Bar data={zipBarData} />
+            </Card.Body>
+          </Card>
+        )}
+
+        {viewMode === "table" && (
+          <div className="table-responsive">
+            <CustomTable data={admins} columns={adminColumns} sorting={adminTableState.sorting} paging={adminTableState.paging} />
+            <div className="d-flex flex-column flex-md-row gap-2 w-100 justify-content-end mb-2">
+              <Button variant="secondary" onClick={exportCSV}>
+                Export Users CSV
+              </Button>
+              <Button variant="secondary" onClick={exportZipSummary}>
+                Export ZIP Summary
+              </Button>
             </div>
-          )
-          : (
-            <>
-              {viewMode === "group" && (
-                <div className="mb-4">
-                  <h5 className="text-light">Users by ZIP</h5>
-                  <ul className="text-light">
-                    {Object.entries(zipCounts).map(([zip, count]) => (
-                      <li key={zip}>
-                        <strong>{zip}</strong>: {count}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {viewMode === "chart" && (
-                <Card className="bg-dark text-white mb-4">
-                  <Card.Body>
-                    <h5>ZIP Code Distribution</h5>
-                    <Bar data={zipBarData} />
-                  </Card.Body>
-                </Card>
-              )}
-
-              {viewMode === "table" && (
-                <div className="table-responsive">
-                  <CustomTable data={users} columns={columns} sorting={sorting} paging={paging} />
-                </div>
-              )}
-            </>
-          )}
+            <CustomTable data={users} columns={columns} sorting={userTableState.sorting} paging={userTableState.paging} />
+          </div>
+        )}
       </Container>
 
       {/* Delete Modal */}
@@ -349,6 +345,55 @@ export default function Profile() {
           >
             Cancel
           </Button>
+        </Modal.Footer>
+      </Modal>
+      <Modal show={adminModal} centered>
+        <Modal.Header>
+          <h3 className="fw-bold w-100 text-center">
+            Add an Admin
+          </h3>
+        </Modal.Header>
+        <Modal.Body>
+          <Form className="d-flex flex-column gap-2">
+            {adminMessage && (
+              <p className={`w-100 text-center fs-4 text-${(adminErr ? "danger" : "success")}`}>
+                {adminMessage}
+              </p>
+            )}
+            <Form.Control
+              type="text"
+              onChange={x => setNewAdmin({ ...newAdmin, first_name: x.target.value })}
+              placeholder="First Name"
+            />
+            <Form.Control
+              type="text"
+              onChange={x => setNewAdmin({ ...newAdmin, last_name: x.target.value })}
+              placeholder="Last Name"
+            />
+            <Form.Control
+              type="text"
+              onChange={x => setNewAdmin({ ...newAdmin, email: x.target.value })}
+              placeholder="Email"
+            />
+            <Form.Control
+              type="text"
+              onChange={x => setNewAdmin({ ...newAdmin, password: x.target.value })}
+              placeholder="Password"
+            />
+            <Form.Select
+              type="text"
+              onChange={x => setNewAdmin({ ...newAdmin, role: x.target.value })}
+              defaultValue={""}
+            >
+              <option value={""} disabled>Select Role</option>
+              <option value={"staff"}>Staff</option>
+              <option value={"management"}>Management</option>
+            </Form.Select>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button className="fw-bold" onClick={createAdmin}>Add</Button>
+          <Button className="fw-bold" onClick={() => setAdminModal(false)}>Cancel</Button>
         </Modal.Footer>
       </Modal>
     </div>
