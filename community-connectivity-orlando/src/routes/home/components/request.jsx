@@ -1,5 +1,4 @@
 import { Button, Modal } from "react-bootstrap";
-import styles from "../home.module.scss";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -48,10 +47,10 @@ export default function Request({ request }) {
   }
 
   return (
-    <div className={`${styles.request}`}>
+    <div className="">
       <h2>Tablet Request Status</h2>
-      <div className={`${styles.report}`}>
-        <div>
+      <div className="d-flex flex-wrap justify-content-center">
+        <div className="col-lg-6 text-center pb-4 px-2">
           <p><strong>Pickup Time</strong></p>
           <p>
             {date.toLocaleString("en-US", { weekday: "long", month: "long", day: "numeric" })}
@@ -59,28 +58,28 @@ export default function Request({ request }) {
             {date.toLocaleString("en-US", { hour: "numeric", minute: "numeric" })}
           </p>
         </div>
-        <div>
+        <div className="col-lg-6 text-center pb-4 px-2">
           <p><strong>Pickup Location</strong></p>
           <p>
             {request.device?.location?.street_address ?? "Unset"}
           </p>
         </div>
-        <div>
+        <div className="col-lg-6 text-center pb-4 px-2">
           <p><strong>Device</strong></p>
           <p>
             {request.device ? `${request.device.make} ${request.device.model} (${request.device.type})` : "Not set"}
           </p>
         </div>
-        <div>
+        <div className="col-lg-6 text-center pb-4 px-2">
           <p><strong>Status</strong></p>
           <p>
             {request.borrow_status}
           </p>
         </div>
       </div>
-      <div className={`${styles["button-container"]}`}>
-        <Button onClick={() => setRescheduleModal(true)}>Reschedule</Button>
-        <Button onClick={() => setAreYouSureModal(true)}>Cancel Request</Button>
+      <div className="w-100 d-flex justify-content-center gap-5">
+        <Button onClick={() => setRescheduleModal(true)} className="fs-3">Reschedule</Button>
+        <Button onClick={() => setAreYouSureModal(true)} className="fs-3">Cancel Request</Button>
       </div>
       <Modal show={areYouSureModal} centered>
         <Modal.Header>

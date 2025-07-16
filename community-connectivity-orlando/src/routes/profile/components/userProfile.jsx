@@ -14,6 +14,24 @@ export default function UserProfile({ user }) {
     navigate("/");
   };
 
+  const startReset = async () => {
+    const response = await fetch("/api/auth/request-reset", {
+      method: "POST",
+      body: JSON.stringify({ email: user.email }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+
+    if (!response.ok) {
+      console.error(response);
+      alert("Could not make reset request!");
+      return;
+    }
+
+    alert("Reset sent. Please check your email: " + user.email);
+  }
+
   const deleteAccount = async () => {
     try {
       const hasRequest = await fetch(`api/borrow/requested/${user.id}`, {
@@ -88,7 +106,7 @@ export default function UserProfile({ user }) {
         </div>
         <div className={`${styles.actions}`}>
           <h1>Account Actions</h1>
-          <Button>Reset Password</Button>
+          <Button onClick={startReset}>Reset Password</Button>
           <Button onClick={logout}>Logout</Button>
           <Button onClick={deleteAccount}>Delete Account</Button>
         </div>
