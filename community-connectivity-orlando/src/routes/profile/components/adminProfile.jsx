@@ -28,7 +28,7 @@ export default function AdminProfile({ admin }) {
 
       navigate("/");
     } catch (error) {
-      console.log(error);
+      console.error(error);
       alert("An error has occured while trying to delete account.");
     }
   };

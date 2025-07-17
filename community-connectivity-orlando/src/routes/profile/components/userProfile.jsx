@@ -53,7 +53,7 @@ export default function UserProfile({ user }) {
 
       navigate("/");
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 

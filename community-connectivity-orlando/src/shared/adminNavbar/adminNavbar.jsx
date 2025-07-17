@@ -12,7 +12,7 @@ export default function AdminNavbar() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && (!user || !user.role || user.role === "user")) {
       navigate("/");
       return;
     }
