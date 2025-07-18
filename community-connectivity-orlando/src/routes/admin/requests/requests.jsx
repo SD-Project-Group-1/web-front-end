@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Container, Form, Modal, Table } from "react-bootstrap";
+import { Button, Container, Modal } from "react-bootstrap";
 import "./requests.scss";
 import CustomTable from "../../../components/table/customTable";
 import { Link } from "react-router-dom";
@@ -118,7 +118,8 @@ function Requests() {
         borrow_status: x.borrow_status?.replace("_", " ") ?? "",
         name: x.user ? x.user.first_name + " " + x.user.last_name : "DELETED",
         borrow_date: formatter(new Date(x.borrow_date)),
-        return_date: x.return_date ? "" : formatter(new Date(x.return_date)),
+        return_date: x.return_date ? formatter(new Date(x.return_date)) : "Not Set",
+        return_date_val: x.return_date,
         location_nickname: x.device?.location?.location_nickname ?? "Not set",
         device: x.device ? `${x.device.brand} ${x.device.make} ${x.device.model} (${x.device.type})` : "Not set",
         device_serial_number: x.device?.serial_number ?? ""
