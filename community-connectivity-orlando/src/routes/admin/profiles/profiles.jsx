@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   Button,
   Card,
@@ -19,6 +19,7 @@ import styles from "../../home/home.module.scss";
 import CustomTable from "../../../components/table/customTable";
 import { useTableState } from "../../../hooks/useTableState";
 import { Link } from "react-router-dom";
+import { UserContext } from "../../../context/userContext";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -44,6 +45,8 @@ export default function Profile() {
     password: "",
     role: "staff",
   });
+
+  const { user } = useContext(UserContext);
 
   const createAdmin = async () => {
     const response = await fetch(`/api/admin/create`, {
@@ -90,7 +93,11 @@ export default function Profile() {
   ]
 
   const columns = [
-    { text: "User ID", dataField: "user_id" },
+    {
+      text: "User ID", dataField: "user_id", formatter: user => (
+        <div className={`${user.is_verified ? "text-success" : ""}`}>{user.user_id}</div>
+      )
+    },
     { text: "First Name", dataField: "first_name" },
     { text: "Last Name", dataField: "last_name" },
     { text: "Email", dataField: "email" },
@@ -108,9 +115,10 @@ export default function Profile() {
   const userFetch = userTableState.fetchTable;
 
   useEffect(() => {
-    adminFetch("/api/admin/getall")
-      .then(data => setAdmins(data))
-      .catch(() => alert("Failed to fetch admin data!"));
+    if (user.role !== "staff")
+      adminFetch("/api/admin/getall")
+        .then(data => setAdmins(data))
+        .catch(() => alert("Failed to fetch admin data!"));
 
     userFetch("/api/user/getall")
       .then(data => setUsers(data))
@@ -217,53 +225,22 @@ export default function Profile() {
           >
             Add Admin
           </Button>
-          {/* <Form.Select */}
-          {/*   value={viewMode} */}
-          {/*   className="w-25" */}
-          {/*   onChange={(e) => setViewMode(e.target.value)} */}
-          {/* > */}
-          {/*   <option value="table">Table View</option> */}
-          {/*   <option value="group">ZIP Summary</option> */}
-          {/*   <option value="chart">ZIP Chart</option> */}
-          {/* </Form.Select> */}
         </Form>
 
-        {viewMode === "group" && (
-          <div className="mb-4">
-            <h5 className="text-light">Users by ZIP</h5>
-            <ul className="text-light">
-              {Object.entries(zipCounts).map(([zip, count]) => (
-                <li key={zip}>
-                  <strong>{zip}</strong>: {count}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {viewMode === "chart" && (
-          <Card className="bg-dark text-white mb-4">
-            <Card.Body>
-              <h5>ZIP Code Distribution</h5>
-              <Bar data={zipBarData} />
-            </Card.Body>
-          </Card>
-        )}
-
-        {viewMode === "table" && (
-          <div className="table-responsive">
+        <div className="table-responsive">
+          {user.role !== "staff" && (
             <CustomTable data={admins} columns={adminColumns} sorting={adminTableState.sorting} paging={adminTableState.paging} />
-            <div className="d-flex flex-column flex-md-row gap-2 w-100 justify-content-end mb-2">
-              <Button variant="secondary" onClick={exportCSV}>
-                Export Users CSV
-              </Button>
-              <Button variant="secondary" onClick={exportZipSummary}>
-                Export ZIP Summary
-              </Button>
-            </div>
-            <CustomTable data={users} columns={columns} sorting={userTableState.sorting} paging={userTableState.paging} />
+          )}
+          <div className="d-flex flex-column flex-md-row gap-2 w-100 justify-content-end mb-2">
+            <Button variant="secondary" onClick={exportCSV}>
+              Export Users CSV
+            </Button>
+            <Button variant="secondary" onClick={exportZipSummary}>
+              Export ZIP Summary
+            </Button>
           </div>
-        )}
+          <CustomTable data={users} columns={columns} sorting={userTableState.sorting} paging={userTableState.paging} />
+        </div>
       </Container>
 
       {/* Delete Modal */}

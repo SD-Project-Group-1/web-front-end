@@ -30,7 +30,13 @@ function Requests() {
   const columns = [
     {
       text: "User", dataField: "name", formatter: row => (
-        row.user_id === "DELETED" ? "DELETED" : <Link to={`/profile/${row.user_id}`} className="text-white text-decoration-none link-primary">{row.name}</Link>
+        <Link to={`/profile/${row.user_id}`}>
+          {row.verified ? (
+            <Button title="User verified" className="bg-success border-success fw-bold">{row.name}</Button>
+          ) : (
+            <Button title="Not verified" className="bg-warning fw-bold">{row.name}</Button>
+          )}
+        </Link>
       )
     },
     { text: "Status", dataField: "borrow_status" },
@@ -114,6 +120,7 @@ function Requests() {
 
       const mapped = data.map(x => ({
         borrow_id: x.borrow_id,
+        verified: x.user?.is_verified ?? false,
         user_id: x.user?.user_id ?? "DELETED",
         borrow_status: x.borrow_status?.replace("_", " ") ?? "",
         name: x.user ? x.user.first_name + " " + x.user.last_name : "DELETED",
