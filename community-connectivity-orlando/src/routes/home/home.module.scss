@@ -29,7 +29,6 @@
 
     @media(max-width: 700px) {
       flex-wrap: wrap;
-
     }
 
 
@@ -113,7 +112,7 @@
   justify-content: center;
   margin: 40px 0;
 
-  @media(max-width: 500px){
+  @media(max-width: 700px) {
     margin: 30px 0;
     gap: 15px;
   }
@@ -127,7 +126,7 @@
     font-weight: bold;
     text-align: center;
 
-    @media(max-width:500px){
+    @media(max-width: 700px) {
       font-size: 30px;
       width: 300px;
       padding: 15px;
@@ -141,7 +140,7 @@
     font-weight: bold;
     border-radius: 10px;
 
-    @media(max-width: 500px){
+    @media(max-width: 700px) {
       font-size: 30px;
       padding: 10px 25px;
     }
@@ -156,10 +155,10 @@
       font-size: 36px;
       padding: 15px;
 
-      @media(max-width: 500px){
+      @media(max-width: 500px) {
         font-size: 26px;
         padding: 10px;
-      }   
+      }
     }
 
     button {
@@ -170,8 +169,8 @@
 
 .navButtons {
   display: flex;
-  justify-content: flex-end; 
-  gap: 15px; 
+  justify-content: flex-end;
+  gap: 15px;
   width: 100%;
 
   a {
@@ -184,13 +183,12 @@
     padding: 10px 20px;
   }
 
-  @media (max-width: 600px) {
-    flex-direction: column;
+  @media (max-width: 700px) {
     align-items: flex-end;
 
     a,
     button {
-      width: 100%;
+      font-size: 12px;
     }
   }
 }
@@ -212,7 +210,7 @@
     font-size: 32px;
     font-weight: bold;
 
-     @media (max-width: 700px) {
+    @media (max-width: 700px) {
       font-size: 26px;
       padding: 0 20px;
 
@@ -252,7 +250,7 @@
     font-weight: bold;
     font-size: 64px;
 
-    @media(max-width: 500px){
+    @media(max-width: 500px) {
       font-size: 48px;
     }
   }
@@ -268,7 +266,7 @@ h2 {
 h1 {
   font-size: 64px;
 
-  @media(max-width:500px){
+  @media(max-width:500px) {
     font-size: 60px;
   }
 }
@@ -277,7 +275,7 @@ h2 {
   font-size: 48px;
   text-align: center;
 
-  @media(max-width: 500px){
+  @media(max-width: 500px) {
     font-size: 40px;
   }
 }
@@ -285,7 +283,7 @@ h2 {
 p {
   font-size: 32px;
 
-  @media(max-width: 500Px){
+  @media(max-width: 500Px) {
     font-size: 24px;
   }
 }
