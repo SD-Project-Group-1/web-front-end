@@ -31,7 +31,12 @@
   .pfp {
     font-size: 50px;
     margin-left: auto;
-    margin-right: 0px !important;
+
+    a {
+      margin-right: 0px !important;
+    }
+
+    height: 100%;
   }
 
   .home-icon {
