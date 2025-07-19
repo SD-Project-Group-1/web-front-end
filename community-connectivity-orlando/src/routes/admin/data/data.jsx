@@ -1,32 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Card, Col, Container, Form, Row } from "react-bootstrap";
 import styles from "../../home/home.module.scss";
 import { Bar, Line, Pie } from "react-chartjs-2";
-import {
-  ArcElement,
-  BarElement,
-  CategoryScale,
-  Chart as ChartJS,
-  Legend,
-  LinearScale,
-  LineElement,
-  PointElement,
-  TimeScale,
-  Tooltip,
-} from "chart.js";
 import "chartjs-adapter-date-fns";
-
-ChartJS.register(
-  ArcElement,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Tooltip,
-  Legend,
-  TimeScale
-);
+import "chart.js/auto";
 
 export default function AdminData() {
   const [users, setUsers] = useState([]);
@@ -34,7 +11,7 @@ export default function AdminData() {
   const [locations, setLocations] = useState([]);
   const [borrows, setBorrows] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedCity, setSelectedCity] = useState("All");
+  const [selectedZip, setSelectedZip] = useState("All");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -98,14 +75,16 @@ export default function AdminData() {
     link.click();
   };
 
-  const cityOptions = [...new Set(users.map((u) => u.city).filter(Boolean))];
-  const filteredUsers = selectedCity === "All" ? users : users.filter((u) => u.city === selectedCity);
+  const zipOptions = [...new Set(users.map((u) => u.zip_code).filter(Boolean))];
+  const filteredUsers = selectedZip === "All" ? users : users.filter((u) => u.zip_code === selectedZip);
 
   const zipRoleCounts = filteredUsers.reduce((acc, u) => {
     const key = `${u.zip_code || "N/A"} - ${u.role || "user"}`;
     acc[key] = (acc[key] || 0) + 1;
     return acc;
   }, {});
+
+  const filteredBorrows = selectedZip === "All" ? borrows : borrows.filter(x => x.user.zip_code === selectedZip);
 
   const pieData = {
     labels: Object.keys(zipRoleCounts),
@@ -119,7 +98,7 @@ export default function AdminData() {
     ],
   };
 
-  const checkedInCounts = borrows
+  const checkedInCounts = filteredBorrows
     .filter((b) => b.borrow_status === "Checked_in" && b.device?.brand)
     .reduce((acc, b) => {
       const key = b.device.brand;
@@ -127,7 +106,7 @@ export default function AdminData() {
       return acc;
     }, {});
 
-  const checkedOutCounts = borrows
+  const checkedOutCounts = filteredBorrows
     .filter((b) => b.borrow_status === "Checked_out" && b.device?.brand)
     .reduce((acc, b) => {
       const key = b.device.brand;
@@ -135,13 +114,14 @@ export default function AdminData() {
       return acc;
     }, {});
 
-  const conditionCounts = borrows.reduce((acc, b) => {
-    const cond = b.device_return_condition || "Unknown";
-    acc[cond] = (acc[cond] || 0) + 1;
-    return acc;
-  }, {});
+  const conditionCounts = filteredBorrows
+    .reduce((acc, b) => {
+      const cond = b.device_return_condition || "Unknown";
+      acc[cond] = (acc[cond] || 0) + 1;
+      return acc;
+    }, {});
 
-  const lateReturns = borrows
+  const lateReturns = filteredBorrows
     .filter((b) => b.borrow_status === "Late")
     .reduce((acc, b) => {
       const date = new Date(b.borrow_date).toLocaleDateString("en-US", {
@@ -151,7 +131,7 @@ export default function AdminData() {
       return acc;
     }, {});
 
-  const trends = borrows.reduce((acc, b) => {
+  const trends = filteredBorrows.reduce((acc, b) => {
     const date = new Date(b.borrow_date).toLocaleDateString("en-US", {
       timeZone: "America/New_York",
     });
@@ -168,7 +148,7 @@ export default function AdminData() {
 
   return (
     <div className={styles["admin-page"]}>
-      <Container className="mt-4">
+      <Container className="my-4">
         <h2 className={styles["page-title"]}>Data Dashboard</h2>
 
         {isLoading ? (
@@ -178,27 +158,24 @@ export default function AdminData() {
           </div>
         ) : (
           <>
-            <Row className="mb-3">
+            <Row className="g-3">
               <Col md={4}>
                 <Form.Select
-                  value={selectedCity}
-                  onChange={(e) => setSelectedCity(e.target.value)}
+                  value={selectedZip}
+                  onChange={(e) => setSelectedZip(e.target.value)}
                 >
-                  <option value="All">All Cities</option>
-                  {cityOptions.map((city) => (
-                    <option key={city}>{city}</option>
+                  <option value="All">All ZIPs</option>
+                  {zipOptions.map((zip) => (
+                    <option key={zip}>{zip}</option>
                   ))}
                 </Form.Select>
               </Col>
-              <Col md={8} className="d-flex gap-2 justify-content-md-end mt-2 mt-md-0">
+              <Col md={6} className="d-flex gap-2 justify-content-md-end mt-2 mt-md-0 overflow-scroll">
                 <Button variant="secondary" onClick={() => exportCSV("users", users)}>Export Users</Button>
                 <Button variant="secondary" onClick={() => exportCSV("devices", devices)}>Export Devices</Button>
                 <Button variant="secondary" onClick={() => exportCSV("locations", locations)}>Export Locations</Button>
                 <Button variant="secondary" onClick={exportZipSummary}>Export ZIP Summary</Button>
               </Col>
-            </Row>
-
-            <Row className="mb-4">
               <Col md={6} style={{ height: "400px" }}>
                 <Card className="bg-dark text-white mb-4 h-100">
                   <Card.Body>
@@ -224,9 +201,6 @@ export default function AdminData() {
                   </Card.Body>
                 </Card>
               </Col>
-            </Row>
-
-            <Row>
               <Col md={6} style={{ height: "400px" }}>
                 <Card className="bg-dark text-white mb-4 h-100">
                   <Card.Body>
@@ -266,9 +240,6 @@ export default function AdminData() {
                   </Card.Body>
                 </Card>
               </Col>
-            </Row>
-
-            <Row>
               <Col md={6} style={{ height: "400px" }}>
                 <Card className="bg-dark text-white mb-4 h-100">
                   <Card.Body>
