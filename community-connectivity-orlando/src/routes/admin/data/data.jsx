@@ -25,7 +25,7 @@ ChartJS.register(
   LineElement,
   Tooltip,
   Legend,
-  TimeScale,
+  TimeScale
 );
 
 export default function AdminData() {
@@ -43,7 +43,7 @@ export default function AdminData() {
         const [userRes, deviceRes, locationRes, borrowRes] = await Promise.all([
           fetch("/api/user/getall", { credentials: "include" }),
           fetch("/api/devices/getall", { credentials: "include" }),
-          fetch("/api/locations/getall", { credentials: "include" }),
+          fetch("/api/locations/getall?includeDevices=true", { credentials: "include" }),
           fetch("/api/borrow/getall", { credentials: "include" }),
         ]);
 
@@ -99,9 +99,7 @@ export default function AdminData() {
   };
 
   const cityOptions = [...new Set(users.map((u) => u.city).filter(Boolean))];
-  const filteredUsers = selectedCity === "All"
-    ? users
-    : users.filter((u) => u.city === selectedCity);
+  const filteredUsers = selectedCity === "All" ? users : users.filter((u) => u.city === selectedCity);
 
   const zipRoleCounts = filteredUsers.reduce((acc, u) => {
     const key = `${u.zip_code || "N/A"} - ${u.role || "user"}`;
