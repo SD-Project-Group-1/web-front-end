@@ -43,7 +43,7 @@ export default function AdminNavbar() {
             <Nav className={`${styles["navbar-nav"]}`}>
               <Link to="/admin/requests">Requests</Link>
               <Link to="/admin/profiles">Profiles</Link>
-              <Link to="/admin/manage">Manage</Link>
+              <Link to="/admin/manage">Devices</Link>
               {user.role !== "staff" && (
                 <Link to="/admin/data">Data</Link>
               )}
