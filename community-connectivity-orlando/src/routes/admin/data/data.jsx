@@ -11,6 +11,7 @@ import {
   LinearScale,
   LineElement,
   PointElement,
+  scales,
   TimeScale,
   Tooltip,
 } from "chart.js";
@@ -119,12 +120,11 @@ export default function AdminData() {
     ],
   };
 
-  const locationDeviceCounts = locations.reduce((acc, loc) => {
-    acc[loc.city] = (acc[loc.city] || 0) + (loc.device?.length || 0);
-    return acc;
-  }, {});
+ 
 
-  const borrowTypeCounts = borrows.reduce((acc, b) => {
+ const borrowTypeCounts = borrows
+  .filter((b) => b.borrow_status === "Checked_in")
+  .reduce((acc, b) => {
     const key = b.device?.brand || "Unknown";
     acc[key] = (acc[key] || 0) + 1;
     return acc;
@@ -139,13 +139,17 @@ export default function AdminData() {
   const lateReturns = borrows
     .filter((b) => b.borrow_status === "Late")
     .reduce((acc, b) => {
-      const date = new Date(b.borrow_date).toLocaleDateString();
+      const date = new Date(b.borrow_date).toLocaleDateString("en-US", {
+        timeZone: "America/New_York",
+      });
       acc[date] = (acc[date] || 0) + 1;
       return acc;
     }, {});
 
   const trends = borrows.reduce((acc, b) => {
-    const date = new Date(b.borrow_date).toISOString().split("T")[0];
+    const date = new Date(b.borrow_date).toLocaleDateString("en-US", {
+      timeZone: "America/New_York",
+    });
     acc[date] = (acc[date] || 0) + 1;
     return acc;
   }, {});
@@ -241,6 +245,13 @@ export default function AdminData() {
                           },
                         ],
                       }}
+                      options={{
+                        scales: {
+                          y: {
+                            beginAtZero: true,
+                          },
+                        },
+                      }}
                     />
                   </Card.Body>
                 </Card>
@@ -286,25 +297,7 @@ export default function AdminData() {
                 </Card>
               </Col>
 
-              <Col md={6}>
-                <Card className="bg-dark text-white mb-4">
-                  <Card.Body>
-                    <h5>Devices per Location</h5>
-                    <Bar
-                      data={{
-                        labels: Object.keys(locationDeviceCounts),
-                        datasets: [
-                          {
-                            label: "Devices",
-                            data: Object.values(locationDeviceCounts),
-                            backgroundColor: "#16a085",
-                          },
-                        ],
-                      }}
-                    />
-                  </Card.Body>
-                </Card>
-              </Col>
+              
             </Row>
           </>
         )}
