@@ -12,7 +12,7 @@ export default function AdminNavbar() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && (!user || !user.role || user.role === "user")) {
       navigate("/");
       return;
     }
@@ -31,9 +31,16 @@ export default function AdminNavbar() {
               <div className="bi bi-house-fill me-2"></div>
             </Link>
           </Navbar.Brand>
-          <Navbar.Toggle aria-controls="basic-navbar-nav" />
+          <div className="d-flex gap-3">
+            <div className={`${styles["pfp-md"]}`}>
+              <Link to="/profile">
+                <div className="bi bi-person-circle"></div>
+              </Link>
+            </div>
+            <Navbar.Toggle aria-controls="basic-navbar-nav" />
+          </div>
           <Navbar.Collapse>
-            <Nav>
+            <Nav className={`${styles["navbar-nav"]}`}>
               <Link to="/admin/requests">Requests</Link>
               <Link to="/admin/profiles">Profiles</Link>
               <Link to="/admin/manage">Manage</Link>

@@ -26,5 +26,13 @@ code {
     monospace;
 }
 
+.ph::placeholder {
+  color: #666 !important;
+}
+
+.cb {
+  width: 25px;
+}
+
 @import '~bootstrap/scss/bootstrap';
 @import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600&display=swap'); //Needed for fonts to work.

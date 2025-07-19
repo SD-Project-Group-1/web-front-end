@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Container, Form, Modal } from "react-bootstrap";
+import { Button, Container, Form, Modal } from "react-bootstrap";
 import "./manage.scss";
 import CustomTable from "../../../components/table/customTable";
 
@@ -18,7 +18,7 @@ function Manage() {
   const [pageSize, setPageSize] = useState(10);
   const [count, setCount] = useState(0);
 
-  const [sortField, setSortField] = useState("borrow_status");
+  const [sortField, setSortField] = useState("serial");
   const [sortDir, setSortDir] = useState("asc");
 
   const paging = { page, pageSize, setPage, setPageSize, count };
@@ -31,7 +31,26 @@ function Manage() {
     { text: "Location", dataField: "location" },
     { text: "Status", dataField: "status", noSort: true },
     { text: "Condition", dataField: "condition", noSort: true },
-  ]
+    {
+      text: "Actions", noSort: true, formatter: dev => (
+        <>
+          <Button className="bg-danger border-danger fw-bold" onClick={() => deleteDevice(dev.id)}>Delete</Button>
+        </>
+      )
+    }
+  ];
+
+  const deleteDevice = async (id) => {
+    const response = await fetch(`/api/devices/delete/${id}`, { method: "DELETE" });
+
+    if (!response.ok) {
+      console.error(response, await response.text());
+      alert("Failed to delete!");
+      return;
+    }
+
+    setDevices(devices.filter(x => x.id !== id));
+  }
 
   const requestData = useCallback(async () => {
     const urlParams = new URLSearchParams();
@@ -66,6 +85,7 @@ function Manage() {
           ? data[i].borrow.at(-1)
           : null;
         deviceData[i] = {
+          id: data[i].device_id,
           serial: data[i].serial_number,
           type: data[i].type,
           brand: data[i].brand,
@@ -150,7 +170,7 @@ function Manage() {
       style={{ backgroundColor: "#102133", minHeight: "100vh" }}
     >
       <Container className="table-container">
-        <div className="d-flex justify-content-between align-items-center mb-3">
+        <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap flex-md-nowrap">
           <h2 className="manage-title mt-4">Device Management</h2>
           <button className="add-device-btn" onClick={() => setShowModal(true)}>
             Add Device

@@ -14,6 +14,25 @@ export default function AdminProfile({ admin }) {
     navigate("/");
   };
 
+  const deleteAccount = async () => {
+    try {
+      const response = await fetch(`/api/admin/delete/${admin.admin_id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        console.error(response, "\n", await response.text());
+        alert("An error has occured while trying to delete account.");
+        return;
+      }
+
+      navigate("/");
+    } catch (error) {
+      console.error(error);
+      alert("An error has occured while trying to delete account.");
+    }
+  };
+
   return (
     <div className={`${styles.container}`}>
       <div className={`${styles["user-card"]}`}>
@@ -44,7 +63,7 @@ export default function AdminProfile({ admin }) {
           <h1>Account Actions</h1>
           <Button>Reset Password</Button>
           <Button onClick={logout}>Logout</Button>
-          <Button>Delete Account</Button>
+          <Button onClick={deleteAccount}>Delete Account</Button>
         </div>
       </div>
     </div>

@@ -6,6 +6,17 @@
   overflow: clip;
   margin-bottom: 50px;
 
+  @media(max-width: 900px) {
+    .table-overflow {
+      overflow-x: scroll;
+      content: clip;
+    }
+
+    table {
+      font-size: 18px !important;
+    }
+  }
+
   table {
     margin-bottom: 0;
     font-size: 26px;
@@ -22,11 +33,27 @@
     th {
       color: white !important;
       border-bottom: 7px solid $bg-color-primary;
+
+      @media(max-width: 900px) {
+        text-wrap: wrap !important;
+
+        align-items: start;
+        align-content: start;
+
+        div {
+          flex-wrap: wrap !important;
+
+          button {
+            margin: 0 !important;
+          }
+        }
+      }
+
       text-wrap: nowrap;
 
       div {
         display: flex;
-        align-items: left;
+        align-items: center;
         justify-content: flex-start;
         text-align: left;
 

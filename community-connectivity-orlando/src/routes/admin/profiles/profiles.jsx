@@ -1,5 +1,4 @@
-// src/routes/admin/profiles/profiles.jsx
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Button,
   Card,
@@ -18,95 +17,105 @@ import {
 } from "chart.js";
 import styles from "../../home/home.module.scss";
 import CustomTable from "../../../components/table/customTable";
+import { useTableState } from "../../../hooks/useTableState";
+import { Link } from "react-router-dom";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
-export default function Profiles() {
+export default function Profile() {
   const [users, setUsers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [admins, setAdmins] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState("table");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showReassignModal, setShowReassignModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [newZip, setNewZip] = useState("");
-  const [newCity, setNewCity] = useState("");
+  const [newLocation, setNewLocation] = useState("");
 
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [count, setCount] = useState(0);
+  const [adminModal, setAdminModal] = useState(false);
+  const [adminMessage, setAdminMessage] = useState(null);
+  const [adminErr, setAdminErr] = useState(false);
 
-  const [query, setQuery] = useState("");
-  const [sortField, setSortField] = useState("user_id");
-  const [sortDir, setSortDir] = useState("desc");
+  const [newAdmin, setNewAdmin] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    password: "",
+    role: "staff",
+  });
 
-  const paging = { page, pageSize, setPage, setPageSize, count };
-  const sorting = { sortField, sortDir, setSortField, setSortDir };
+  const createAdmin = async () => {
+    const response = await fetch(`/api/admin/create`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newAdmin)
+    });
+
+    if (!response.ok) {
+      console.error("Could not create admin.");
+      console.error(response);
+      console.error(await response.text());
+      setAdminErr(true);
+      setAdminMessage("Could not create admin!");
+
+      return;
+    }
+    setAdminMessage("Admin created!");
+    setAdminErr(false);
+
+    setTimeout(() => {
+      setAdminModal(false);
+      setAdminMessage(null);
+      adminFetch()
+    }, 3000);
+  }
+
+  const adminTableState = useTableState("admin_id", "desc");
+  const userTableState = useTableState("user_id", "desc");
+
+  const adminColumns = [
+    { text: "Admin ID", dataField: "admin_id" },
+    { text: "First Name", dataField: "first_name" },
+    { text: "Last Name", dataField: "last_name" },
+    { text: "Email", dataField: "email" },
+    { text: "Role", dataField: "role" },
+    {
+      text: "Profile", noSort: true, formatter: (row) => (
+        <>
+          <Link to={`/admin/profile/${row.admin_id}`}><Button>View</Button></Link>
+        </>
+      )
+    }
+  ]
 
   const columns = [
     { text: "User ID", dataField: "user_id" },
     { text: "First Name", dataField: "first_name" },
     { text: "Last Name", dataField: "last_name" },
     { text: "Email", dataField: "email" },
-    { text: "ZIP", dataField: "zip_code" },
+    { text: "Zip", dataField: "zip_code" },
     {
-      noSort: true,
-      text: "Actions",
-      formatter: (user) => (
+      noSort: true, text: "Profile", formatter: (user) => (
         <>
-          <Button
-            size="sm"
-            variant="outline-warning"
-            onClick={() => {
-              setSelectedUser(user);
-              setNewZip(user.zip_code || "");
-              setNewCity(user.city || "");
-              setShowReassignModal(true);
-            }}
-          >
-            Reassign
-          </Button>{" "}
-          <Button
-            size="sm"
-            variant="outline-danger"
-            onClick={() => {
-              setSelectedUser(user);
-              setShowDeleteModal(true);
-            }}
-          >
-            Delete
-          </Button>
+          <Link to={`/profile/${user.user_id}`}><Button>View</Button></Link>
         </>
-      ),
+      )
     },
   ];
 
-  const fetchUsers = useCallback(async () => {
-    try {
-      const urlParams = new URLSearchParams();
-      urlParams.append("page", page);
-      urlParams.append("pageSize", pageSize);
-      urlParams.append("sortBy", sortField);
-      urlParams.append("sortDir", sortDir);
-      if (query) urlParams.append("q", query);
-
-      setIsLoading(true);
-      const res = await fetch(`/api/user/getall?${urlParams}`, {
-        credentials: "include",
-      });
-      const { data, count } = await res.json();
-      setUsers(data);
-      setCount(count);
-    } catch (err) {
-      console.error("Failed to fetch users", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [page, pageSize, sortField, sortDir, query]);
+  const adminFetch = adminTableState.fetchTable;
+  const userFetch = userTableState.fetchTable;
 
   useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+    adminFetch("/api/admin/getall")
+      .then(data => setAdmins(data))
+      .catch(() => alert("Failed to fetch admin data!"));
+
+    userFetch("/api/user/getall")
+      .then(data => setUsers(data))
+      .catch(() => alert("Failed to fetch user data!"));
+  }, [adminFetch, userFetch, newAdmin]);
 
   const zipCounts = users.reduce((acc, user) => {
     const zip = user.zip_code || "N/A";
@@ -126,8 +135,8 @@ export default function Profiles() {
       "city",
       "state",
     ];
-    const rows = users.map((u) =>
-      headers.map((field) => `"${u[field] || ""}"`).join(",")
+    const rows = users.map((user) =>
+      headers.map((field) => `"${user[field] || ""}"`).join(",")
     );
     const csv = [headers.join(","), ...rows].join("\n");
 
@@ -135,13 +144,13 @@ export default function Profiles() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "users.csv";
+    link.download = "filtered_users.csv";
     link.click();
   };
 
   const exportZipSummary = () => {
     const rows = Object.entries(zipCounts).map(
-      ([zip, count]) => `${zip},${count}`
+      ([zip, count]) => `"${zip}","${count}"`,
     );
     const csv = ["ZIP,Count", ...rows].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
@@ -161,11 +170,12 @@ export default function Profiles() {
     setShowDeleteModal(false);
   };
 
-  const handleReassign = () => {
+  const handleReassign = async () => {
+    // Simulated update
     setUsers((prev) =>
       prev.map((u) =>
         u.user_id === selectedUser.user_id
-          ? { ...u, zip_code: newZip, city: newCity }
+          ? { ...u, zip_code: newZip, location: newLocation }
           : u
       )
     );
@@ -178,7 +188,9 @@ export default function Profiles() {
       {
         label: "Users per ZIP",
         data: Object.values(zipCounts),
-        backgroundColor: "#f39c12",
+        backgroundColor: "rgba(255, 206, 86, 0.6)",
+        borderColor: "#f39c12",
+        borderWidth: 1,
       },
     ],
   };
@@ -186,114 +198,181 @@ export default function Profiles() {
   return (
     <div className={styles["admin-page"]}>
       <Container className="mt-4">
-        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
-          <h2 className={styles["page-title"]}>Admin Profile Management</h2>
-          <div className="d-flex gap-2 flex-wrap">
-            <Button variant="secondary" onClick={exportCSV}>
-              Export Users CSV
-            </Button>
-            <Button variant="secondary" onClick={exportZipSummary}>
-              Export ZIP Summary
-            </Button>
-          </div>
+        <div className="d-flex flex-column flex-md-row gap-2 justify-content-between align-items-start align-items-md-center mb-3">
+          <h2 className={styles["page-title"]}>Profiles</h2>
         </div>
 
-        <Form className="d-flex flex-column flex-md-row mb-3 gap-2" onSubmit={(e) => e.preventDefault()}>
+        <Form className="mb-3 d-flex flex-column flex-md-row gap-2" onSubmit={ev => ev.preventDefault()}>
           <Form.Control
-            placeholder="Search..."
+            type="text"
+            placeholder="Search ..."
             className="w-75"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && setQuery(searchTerm)}
+            onKeyDown={e => { if (e.key === "Enter") userTableState.setQuery(searchTerm); adminTableState.setQuery(searchTerm) }}
           />
-          <Form.Select
-            className="w-25"
-            value={viewMode}
-            onChange={(e) => setViewMode(e.target.value)}
+          <Button
+            className="w-25 fw-bold"
+            onClick={() => setAdminModal(true)}
           >
-            <option value="table">Table View</option>
-            <option value="group">ZIP Summary</option>
-            <option value="chart">ZIP Chart</option>
-          </Form.Select>
+            Add Admin
+          </Button>
+          {/* <Form.Select */}
+          {/*   value={viewMode} */}
+          {/*   className="w-25" */}
+          {/*   onChange={(e) => setViewMode(e.target.value)} */}
+          {/* > */}
+          {/*   <option value="table">Table View</option> */}
+          {/*   <option value="group">ZIP Summary</option> */}
+          {/*   <option value="chart">ZIP Chart</option> */}
+          {/* </Form.Select> */}
         </Form>
 
-        {isLoading ? (
-          <div className="text-center text-light">
-            <span className="spinner-border text-warning"></span>
-            <p>Loading users...</p>
+        {viewMode === "group" && (
+          <div className="mb-4">
+            <h5 className="text-light">Users by ZIP</h5>
+            <ul className="text-light">
+              {Object.entries(zipCounts).map(([zip, count]) => (
+                <li key={zip}>
+                  <strong>{zip}</strong>: {count}
+                </li>
+              ))}
+            </ul>
           </div>
-        ) : (
-          <>
-            {viewMode === "group" && (
-              <ul className="text-light">
-                {Object.entries(zipCounts).map(([zip, count]) => (
-                  <li key={zip}><strong>{zip}</strong>: {count}</li>
-                ))}
-              </ul>
-            )}
-            {viewMode === "chart" && (
-              <Card className="bg-dark text-white mb-4">
-                <Card.Body>
-                  <h5>ZIP Code Distribution</h5>
-                  <Bar data={zipBarData} />
-                </Card.Body>
-              </Card>
-            )}
-            {viewMode === "table" && (
-              <CustomTable
-                data={users}
-                columns={columns}
-                sorting={sorting}
-                paging={paging}
-              />
-            )}
-          </>
+        )}
+
+        {viewMode === "chart" && (
+          <Card className="bg-dark text-white mb-4">
+            <Card.Body>
+              <h5>ZIP Code Distribution</h5>
+              <Bar data={zipBarData} />
+            </Card.Body>
+          </Card>
+        )}
+
+        {viewMode === "table" && (
+          <div className="table-responsive">
+            <CustomTable data={admins} columns={adminColumns} sorting={adminTableState.sorting} paging={adminTableState.paging} />
+            <div className="d-flex flex-column flex-md-row gap-2 w-100 justify-content-end mb-2">
+              <Button variant="secondary" onClick={exportCSV}>
+                Export Users CSV
+              </Button>
+              <Button variant="secondary" onClick={exportZipSummary}>
+                Export ZIP Summary
+              </Button>
+            </div>
+            <CustomTable data={users} columns={columns} sorting={userTableState.sorting} paging={userTableState.paging} />
+          </div>
         )}
       </Container>
 
       {/* Delete Modal */}
       <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>Delete User</Modal.Title>
+          <Modal.Title>Confirm Deletion</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           Are you sure you want to delete{" "}
-          <strong>{selectedUser?.first_name} {selectedUser?.last_name}</strong>?
+          <strong>
+            {selectedUser?.first_name} {selectedUser?.last_name}
+          </strong>
+          ?
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="danger" onClick={handleDelete}>Yes, Delete</Button>
-          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
+          <Button variant="danger" onClick={handleDelete}>
+            Yes, Delete
+          </Button>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            Cancel
+          </Button>
         </Modal.Footer>
       </Modal>
 
       {/* Reassign Modal */}
-      <Modal show={showReassignModal} onHide={() => setShowReassignModal(false)}>
+      <Modal
+        show={showReassignModal}
+        onHide={() => setShowReassignModal(false)}
+      >
         <Modal.Header closeButton>
-          <Modal.Title>Reassign ZIP & City</Modal.Title>
+          <Modal.Title>Reassign ZIP & Location</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form.Group className="mb-3">
-            <Form.Label>New ZIP</Form.Label>
-            <Form.Control
-              value={newZip}
-              onChange={(e) => setNewZip(e.target.value)}
-            />
-          </Form.Group>
-          <Form.Group>
-            <Form.Label>New City</Form.Label>
-            <Form.Control
-              value={newCity}
-              onChange={(e) => setNewCity(e.target.value)}
-            />
-          </Form.Group>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>ZIP Code</Form.Label>
+              <Form.Control
+                value={newZip}
+                onChange={(e) => setNewZip(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>Location (City)</Form.Label>
+              <Form.Control
+                value={newLocation}
+                onChange={(e) => setNewLocation(e.target.value)}
+              />
+            </Form.Group>
+          </Form>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="warning" onClick={handleReassign}>
             Save Changes
           </Button>
-          <Button variant="secondary" onClick={() => setShowReassignModal(false)}>
+          <Button
+            variant="secondary"
+            onClick={() => setShowReassignModal(false)}
+          >
             Cancel
           </Button>
+        </Modal.Footer>
+      </Modal>
+      <Modal show={adminModal} centered>
+        <Modal.Header>
+          <h3 className="fw-bold w-100 text-center">
+            Add an Admin
+          </h3>
+        </Modal.Header>
+        <Modal.Body>
+          <Form className="d-flex flex-column gap-2">
+            {adminMessage && (
+              <p className={`w-100 text-center fs-4 text-${(adminErr ? "danger" : "success")}`}>
+                {adminMessage}
+              </p>
+            )}
+            <Form.Control
+              type="text"
+              onChange={x => setNewAdmin({ ...newAdmin, first_name: x.target.value })}
+              placeholder="First Name"
+            />
+            <Form.Control
+              type="text"
+              onChange={x => setNewAdmin({ ...newAdmin, last_name: x.target.value })}
+              placeholder="Last Name"
+            />
+            <Form.Control
+              type="text"
+              onChange={x => setNewAdmin({ ...newAdmin, email: x.target.value })}
+              placeholder="Email"
+            />
+            <Form.Control
+              type="text"
+              onChange={x => setNewAdmin({ ...newAdmin, password: x.target.value })}
+              placeholder="Password"
+            />
+            <Form.Select
+              type="text"
+              onChange={x => setNewAdmin({ ...newAdmin, role: x.target.value })}
+              defaultValue={""}
+            >
+              <option value={""} disabled>Select Role</option>
+              <option value={"staff"}>Staff</option>
+              <option value={"management"}>Management</option>
+            </Form.Select>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button className="fw-bold" onClick={createAdmin}>Add</Button>
+          <Button className="fw-bold" onClick={() => setAdminModal(false)}>Cancel</Button>
         </Modal.Footer>
       </Modal>
     </div>

@@ -21,10 +21,12 @@ function Profile() {
 
       if (!response.ok) {
         alert("Could not get that profile!");
+        console.error(response, "\n", await response.text());
         setInterval(() => navigate("/"), 3000);
+        return;
       }
 
-      const data = response.json();
+      const data = await response.json();
       setProfileOf(data);
     };
 
@@ -33,6 +35,7 @@ function Profile() {
 
       if (!response.ok) {
         alert("Could not get that profile!");
+        console.error(response, "\n", await response.text());
         setInterval(() => navigate("/"), 3000);
       }
 
@@ -40,6 +43,7 @@ function Profile() {
 
       setProfileOf(data);
     };
+
     if (adminId) {
       if (user?.role !== "management") {
         navigate("/");
