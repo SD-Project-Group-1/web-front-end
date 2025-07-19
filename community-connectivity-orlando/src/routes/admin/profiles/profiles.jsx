@@ -90,7 +90,11 @@ export default function Profile() {
   ]
 
   const columns = [
-    { text: "User ID", dataField: "user_id" },
+    {
+      text: "User ID", dataField: "user_id", formatter: user => (
+        <div className={`${user.is_verified ? "text-success" : ""}`}>{user.user_id}</div>
+      )
+    },
     { text: "First Name", dataField: "first_name" },
     { text: "Last Name", dataField: "last_name" },
     { text: "Email", dataField: "email" },

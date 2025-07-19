@@ -6,7 +6,7 @@ import { Button, Form, Row, Col } from "react-bootstrap";
 
 export default function UserProfile({ user }) {
   const navigate = useNavigate();
-  const { setUser } = useContext(UserContext);
+  const { user: auth, setUser } = useContext(UserContext);
 
   user.id = user.id ?? user.user_id;
 
@@ -48,6 +48,8 @@ export default function UserProfile({ user }) {
   }
 
   const updateUser = async () => {
+    console.log(userUpdate);
+
     const response = await fetch(`/api/user/update/${user.id}`, {
       method: "PATCH",
       body: JSON.stringify(userUpdate),
@@ -89,8 +91,6 @@ export default function UserProfile({ user }) {
       console.error(error);
     }
   };
-
-  console.log(user);
 
   return (
     <div className={`${styles.container}`}>
@@ -149,12 +149,13 @@ export default function UserProfile({ user }) {
                 onChange={x => setUserUpdate({ ...userUpdate, street_address: x.target.value })} />
             </Col>
 
-            <Col md={12} className="d-flex gap-3">
-              <Form.Label>Is Verified: </Form.Label>
-              <input type="checkbox" name="is_verified" value={userUpdate.is_verified} className="cb"
-                onChange={x => setUserUpdate({ ...userUpdate, is_verified: x.target.value })} />
-            </Col>
-
+            {auth.role !== undefined && (
+              <Col md={12} className="d-flex gap-3">
+                <Form.Label>Is Verified: </Form.Label>
+                <input type="checkbox" name="is_verified" checked={userUpdate.is_verified} className="cb"
+                  onChange={x => setUserUpdate({ ...userUpdate, is_verified: x.target.checked })} />
+              </Col>
+            )}
 
             <Col md={6} className="d-flex gap-3">
               <Button onClick={updateUser}>Update info</Button>
