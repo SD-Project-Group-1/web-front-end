@@ -252,7 +252,7 @@ export default function DeviceModal({ show, handleClose, selectedRequest, setSel
               <table className="mx-auto w-auto mb-2 ">
                 <tbody>
                   <tr>
-                    <td className="align-top pe-5 fw-bold">Picking up: </td>
+                    <td className="align-top pe-5 fw-bold text-end">Picking up: </td>
                     <td>
                       {selectedRequest.device}
                       <br />

@@ -23,18 +23,20 @@ export default function SignedOut() {
   return (
     <div>
       <h2>Check Eligible Area</h2>
-      <div className={`${styles.eligable}`} >
+      <div className={`${styles.zipCheckContainer}`} >
         <input placeholder="ZIP Code" name="zip" value={zip} onChange={x => setZip(x.target.value)} />
         <Button onClick={checkZipCode}>Check</Button>
       </div>
       <h2>Make an account</h2>
-      <div className={`${styles["make-account-box"]}`}>
+      <div className="">
         <p>
           All you need to get started is to make an account and provide some
           basic information.
         </p>
         <Link to={"/signup"}>
-          <Button>Sign Up</Button>
+          <div className="w-100 d-flex justify-content-center">
+            <Button className="fs-1 fw-bold">Sign Up</Button>
+          </div>
         </Link>
       </div>
     </div>

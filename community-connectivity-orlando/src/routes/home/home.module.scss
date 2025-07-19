@@ -23,13 +23,12 @@
   .button-container {
     width: 100%;
     display: flex;
-    justify-content: center;
+    justify-content: right;
     align-items: center;
     margin-top: 100px;
 
     @media(max-width: 700px) {
       flex-wrap: wrap;
-
     }
 
 
@@ -42,6 +41,158 @@
     }
   }
 }
+
+.signed-in {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  button {
+    width: fit-content;
+    font-weight: bold;
+    font-size: 64px;
+  }
+
+  .request-form {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    div {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 50%;
+      height: 150px;
+
+      input {
+        text-align: start;
+        font-weight: bold;
+        font-size: 34px;
+        width: 418px;
+
+        height: fit-content;
+      }
+
+      input::placeholder {
+        text-align: center;
+      }
+
+      select {
+        text-align: center;
+        font-weight: bold;
+        font-size: 34px;
+        width: 418px;
+
+        background-color: $primary_color;
+      }
+    }
+
+    .reason {
+      label {
+        font-size: 34px;
+      }
+
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+  }
+
+
+}
+
+.zipCheckContainer {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  margin: 40px 0;
+
+  @media(max-width: 700px) {
+    margin: 30px 0;
+    gap: 15px;
+  }
+
+  input {
+    font-size: 48px;
+    padding: 20px;
+    width: 500px;
+    border-radius: 10px;
+    border: 2px solid #ccc;
+    font-weight: bold;
+    text-align: center;
+
+    @media(max-width: 700px) {
+      font-size: 30px;
+      width: 300px;
+      padding: 15px;
+      border-radius: 5px;
+    }
+  }
+
+  button {
+    font-size: 40px;
+    padding: 20px 50px;
+    font-weight: bold;
+    border-radius: 10px;
+
+    @media(max-width: 700px) {
+      font-size: 30px;
+      padding: 10px 25px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+
+    input,
+    button {
+      width: 100%;
+      font-size: 36px;
+      padding: 15px;
+
+      @media(max-width: 500px) {
+        font-size: 26px;
+        padding: 10px;
+      }
+    }
+
+    button {
+      margin-top: 10px;
+    }
+  }
+}
+
+.navButtons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  width: 100%;
+
+  a {
+    text-decoration: none;
+  }
+
+  button {
+    font-size: 18px;
+    font-weight: bold;
+    padding: 10px 20px;
+  }
+
+  @media (max-width: 700px) {
+    align-items: flex-end;
+
+    a,
+    button {
+      font-size: 12px;
+    }
+  }
+}
+
 
 .navbar {
   display: flex;
@@ -59,6 +210,15 @@
     font-size: 32px;
     font-weight: bold;
 
+    @media (max-width: 700px) {
+      font-size: 26px;
+      padding: 0 20px;
+
+      a {
+        font-size: 27px;
+      }
+    }
+
     a {
       font-size: 32px;
       font-weight: bold;
@@ -67,7 +227,6 @@
     }
 
     padding: 0 30px;
-    margin-left: 30px;
   }
 
 }
@@ -76,27 +235,6 @@
   display: flex;
   flex-direction: column;
   padding: 20px;
-}
-
-.eligable {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  padding: 20px;
-
-  button {
-    margin-left: 30px;
-    font-size: 32px;
-    font-weight: bold;
-    padding: 0 30px;
-  }
-
-  input {
-    text-align: center;
-    font-weight: bold;
-    font-size: 48px;
-    width: 418px;
-  }
 }
 
 .make-account-box {
@@ -111,6 +249,10 @@
     width: fit-content;
     font-weight: bold;
     font-size: 64px;
+
+    @media(max-width: 500px) {
+      font-size: 48px;
+    }
   }
 }
 
@@ -123,13 +265,25 @@ h2 {
 
 h1 {
   font-size: 64px;
+
+  @media(max-width:500px) {
+    font-size: 60px;
+  }
 }
 
 h2 {
   font-size: 48px;
   text-align: center;
+
+  @media(max-width: 500px) {
+    font-size: 40px;
+  }
 }
 
 p {
   font-size: 32px;
+
+  @media(max-width: 500Px) {
+    font-size: 24px;
+  }
 }
