@@ -222,7 +222,8 @@ export default function DeviceModal({ show, handleClose, selectedRequest, setSel
         return_date: data.return_date ? formatter(new Date(data.return_date)) : "Not Set",
         location_nickname: data.device?.location?.location_nickname ?? "Not set",
         device: data.device ? `${data.device.brand} ${data.device.make} ${data.device.model} (${data.device.type})` : "Not set",
-        device_serial_number: data.device?.serial_number ?? ""
+        device_serial_number: data.device?.serial_number ?? "",
+        verified: data.user.is_verified ?? false
       }
 
       setSelectedRequest(update);
