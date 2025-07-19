@@ -11,7 +11,6 @@ import {
   LinearScale,
   LineElement,
   PointElement,
-  scales,
   TimeScale,
   Tooltip,
 } from "chart.js";
@@ -120,15 +119,21 @@ export default function AdminData() {
     ],
   };
 
- 
+  const checkedInCounts = borrows
+    .filter((b) => b.borrow_status === "Checked_in" && b.device?.brand)
+    .reduce((acc, b) => {
+      const key = b.device.brand;
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
 
- const borrowTypeCounts = borrows
-  .filter((b) => b.borrow_status === "Checked_in")
-  .reduce((acc, b) => {
-    const key = b.device?.brand || "Unknown";
-    acc[key] = (acc[key] || 0) + 1;
-    return acc;
-  }, {});
+  const checkedOutCounts = borrows
+    .filter((b) => b.borrow_status === "Checked_out" && b.device?.brand)
+    .reduce((acc, b) => {
+      const key = b.device.brand;
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
 
   const conditionCounts = borrows.reduce((acc, b) => {
     const cond = b.device_return_condition || "Unknown";
@@ -154,6 +159,13 @@ export default function AdminData() {
     return acc;
   }, {});
 
+  const defaultChartOptions = (title) => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: true }, title: { display: true, text: title } },
+    scales: { y: { beginAtZero: true } },
+  });
+
   return (
     <div className={styles["admin-page"]}>
       <Container className="mt-4">
@@ -178,61 +190,46 @@ export default function AdminData() {
                   ))}
                 </Form.Select>
               </Col>
-              <Col
-                md={8}
-                className="d-flex gap-2 justify-content-md-end mt-2 mt-md-0"
-              >
-                <Button variant="secondary" onClick={() => exportCSV("users", users)}>
-                  Export Users
-                </Button>
-                <Button variant="secondary" onClick={() => exportCSV("devices", devices)}>
-                  Export Devices
-                </Button>
-                <Button variant="secondary" onClick={() => exportCSV("locations", locations)}>
-                  Export Locations
-                </Button>
-                <Button variant="secondary" onClick={exportZipSummary}>
-                  Export ZIP Summary
-                </Button>
+              <Col md={8} className="d-flex gap-2 justify-content-md-end mt-2 mt-md-0">
+                <Button variant="secondary" onClick={() => exportCSV("users", users)}>Export Users</Button>
+                <Button variant="secondary" onClick={() => exportCSV("devices", devices)}>Export Devices</Button>
+                <Button variant="secondary" onClick={() => exportCSV("locations", locations)}>Export Locations</Button>
+                <Button variant="secondary" onClick={exportZipSummary}>Export ZIP Summary</Button>
               </Col>
             </Row>
 
             <Row className="mb-4">
-              <Col md={6}>
-                <Card className="bg-dark text-white mb-4">
+              <Col md={6} style={{ height: "400px" }}>
+                <Card className="bg-dark text-white mb-4 h-100">
                   <Card.Body>
-                    <h5>User ZIP+Role Distribution</h5>
-                    <Pie data={pieData} />
+                    <Pie data={pieData} options={defaultChartOptions("User ZIP+Role Distribution")} />
                   </Card.Body>
                 </Card>
-
-                <Card className="bg-dark text-white mb-4">
+              </Col>
+              <Col md={6} style={{ height: "400px" }}>
+                <Card className="bg-dark text-white mb-4 h-100">
                   <Card.Body>
-                    <h5>Device Condition Summary</h5>
                     <Pie
                       data={{
                         labels: Object.keys(conditionCounts),
                         datasets: [
                           {
                             data: Object.values(conditionCounts),
-                            backgroundColor: [
-                              "#27ae60",
-                              "#f39c12",
-                              "#c0392b",
-                              "#7f8c8d",
-                            ],
+                            backgroundColor: ["#27ae60", "#f39c12", "#c0392b", "#7f8c8d"],
                           },
                         ],
                       }}
+                      options={defaultChartOptions("Device Condition Summary")}
                     />
                   </Card.Body>
                 </Card>
               </Col>
+            </Row>
 
-              <Col md={6}>
-                <Card className="bg-dark text-white mb-4">
+            <Row>
+              <Col md={6} style={{ height: "400px" }}>
+                <Card className="bg-dark text-white mb-4 h-100">
                   <Card.Body>
-                    <h5>Borrow Trend (Daily)</h5>
                     <Line
                       data={{
                         labels: Object.keys(trends),
@@ -245,20 +242,14 @@ export default function AdminData() {
                           },
                         ],
                       }}
-                      options={{
-                        scales: {
-                          y: {
-                            beginAtZero: true,
-                          },
-                        },
-                      }}
+                      options={defaultChartOptions("Borrow Trend (Daily)")}
                     />
                   </Card.Body>
                 </Card>
-
-                <Card className="bg-dark text-white mb-4">
+              </Col>
+              <Col md={6} style={{ height: "400px" }}>
+                <Card className="bg-dark text-white mb-4 h-100">
                   <Card.Body>
-                    <h5>Late Returns</h5>
                     <Bar
                       data={{
                         labels: Object.keys(lateReturns),
@@ -270,6 +261,7 @@ export default function AdminData() {
                           },
                         ],
                       }}
+                      options={defaultChartOptions("Late Returns")}
                     />
                   </Card.Body>
                 </Card>
@@ -277,27 +269,44 @@ export default function AdminData() {
             </Row>
 
             <Row>
-              <Col md={6}>
-                <Card className="bg-dark text-white mb-4">
+              <Col md={6} style={{ height: "400px" }}>
+                <Card className="bg-dark text-white mb-4 h-100">
                   <Card.Body>
-                    <h5>Borrowed Devices by Brand</h5>
                     <Bar
                       data={{
-                        labels: Object.keys(borrowTypeCounts),
+                        labels: Object.keys(checkedInCounts),
                         datasets: [
                           {
-                            label: "Borrows",
-                            data: Object.values(borrowTypeCounts),
-                            backgroundColor: "#8e44ad",
+                            label: "Checked In",
+                            data: Object.values(checkedInCounts),
+                            backgroundColor: "#27ae60",
                           },
                         ],
                       }}
+                      options={defaultChartOptions("Checked In Devices by Brand")}
                     />
                   </Card.Body>
                 </Card>
               </Col>
-
-              
+              <Col md={6} style={{ height: "400px" }}>
+                <Card className="bg-dark text-white mb-4 h-100">
+                  <Card.Body>
+                    <Bar
+                      data={{
+                        labels: Object.keys(checkedOutCounts),
+                        datasets: [
+                          {
+                            label: "Checked Out",
+                            data: Object.values(checkedOutCounts),
+                            backgroundColor: "#e67e22",
+                          },
+                        ],
+                      }}
+                      options={defaultChartOptions("Checked Out Devices by Brand")}
+                    />
+                  </Card.Body>
+                </Card>
+              </Col>
             </Row>
           </>
         )}
