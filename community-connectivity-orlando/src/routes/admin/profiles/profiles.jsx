@@ -1,38 +1,20 @@
 import React, { useContext, useEffect, useState } from "react";
 import {
   Button,
-  Card,
   Container,
   Form,
   Modal,
 } from "react-bootstrap";
-import { Bar } from "react-chartjs-2";
-import {
-  BarElement,
-  CategoryScale,
-  Chart as ChartJS,
-  Legend,
-  LinearScale,
-  Tooltip,
-} from "chart.js";
 import styles from "../../home/home.module.scss";
 import CustomTable from "../../../components/table/customTable";
 import { useTableState } from "../../../hooks/useTableState";
 import { Link } from "react-router-dom";
 import { UserContext } from "../../../context/userContext";
 
-ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
-
 export default function Profile() {
   const [users, setUsers] = useState([]);
   const [admins, setAdmins] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [viewMode, setViewMode] = useState("table");
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showReassignModal, setShowReassignModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [newZip, setNewZip] = useState("");
-  const [newLocation, setNewLocation] = useState("");
 
   const [adminModal, setAdminModal] = useState(false);
   const [adminMessage, setAdminMessage] = useState(null);
@@ -169,40 +151,6 @@ export default function Profile() {
     link.click();
   };
 
-  const handleDelete = async () => {
-    await fetch(`/api/user/delete/${selectedUser.user_id}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
-    setUsers(users.filter((u) => u.user_id !== selectedUser.user_id));
-    setShowDeleteModal(false);
-  };
-
-  const handleReassign = async () => {
-    // Simulated update
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.user_id === selectedUser.user_id
-          ? { ...u, zip_code: newZip, location: newLocation }
-          : u
-      )
-    );
-    setShowReassignModal(false);
-  };
-
-  const zipBarData = {
-    labels: Object.keys(zipCounts),
-    datasets: [
-      {
-        label: "Users per ZIP",
-        data: Object.values(zipCounts),
-        backgroundColor: "rgba(255, 206, 86, 0.6)",
-        borderColor: "#f39c12",
-        borderWidth: 1,
-      },
-    ],
-  };
-
   return (
     <div className={styles["admin-page"]}>
       <Container className="mt-4">
@@ -231,78 +179,10 @@ export default function Profile() {
           {user.role !== "staff" && (
             <CustomTable data={admins} columns={adminColumns} sorting={adminTableState.sorting} paging={adminTableState.paging} />
           )}
-          <div className="d-flex flex-column flex-md-row gap-2 w-100 justify-content-end mb-2">
-            <Button variant="secondary" onClick={exportCSV}>
-              Export Users CSV
-            </Button>
-            <Button variant="secondary" onClick={exportZipSummary}>
-              Export ZIP Summary
-            </Button>
-          </div>
           <CustomTable data={users} columns={columns} sorting={userTableState.sorting} paging={userTableState.paging} />
         </div>
       </Container>
 
-      {/* Delete Modal */}
-      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Confirm Deletion</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          Are you sure you want to delete{" "}
-          <strong>
-            {selectedUser?.first_name} {selectedUser?.last_name}
-          </strong>
-          ?
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="danger" onClick={handleDelete}>
-            Yes, Delete
-          </Button>
-          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
-            Cancel
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
-      {/* Reassign Modal */}
-      <Modal
-        show={showReassignModal}
-        onHide={() => setShowReassignModal(false)}
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Reassign ZIP & Location</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group className="mb-3">
-              <Form.Label>ZIP Code</Form.Label>
-              <Form.Control
-                value={newZip}
-                onChange={(e) => setNewZip(e.target.value)}
-              />
-            </Form.Group>
-            <Form.Group>
-              <Form.Label>Location (City)</Form.Label>
-              <Form.Control
-                value={newLocation}
-                onChange={(e) => setNewLocation(e.target.value)}
-              />
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="warning" onClick={handleReassign}>
-            Save Changes
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => setShowReassignModal(false)}
-          >
-            Cancel
-          </Button>
-        </Modal.Footer>
-      </Modal>
       <Modal show={adminModal} centered>
         <Modal.Header>
           <h3 className="fw-bold w-100 text-center">
