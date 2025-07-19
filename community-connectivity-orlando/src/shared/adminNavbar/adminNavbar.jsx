@@ -44,7 +44,9 @@ export default function AdminNavbar() {
               <Link to="/admin/requests">Requests</Link>
               <Link to="/admin/profiles">Profiles</Link>
               <Link to="/admin/manage">Manage</Link>
-              <Link to="/admin/data">Data</Link>
+              {user.role !== "staff" && (
+                <Link to="/admin/data">Data</Link>
+              )}
             </Nav>
             <Nav.Item className={`${styles.pfp}`}>
               <Link to="/profile">
