@@ -21,6 +21,8 @@ export default function DeviceModal({ show, handleClose, selectedRequest, setSel
   const [status, setStatus] = useState(selectedRequest?.borrow_status?.replace(" ", "_") ?? null);
   const [retState, setRetState] = useState(selectedRequest?.device_return_condition ?? null);
   const [removeDev, setRemoveDev] = useState(false);
+  const [retDate, setRetDate] = useState(selectedRequest.return_date_val);
+  const [devUsage, setDevUsage] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -126,6 +128,18 @@ export default function DeviceModal({ show, handleClose, selectedRequest, setSel
     setDevice(device);
   }, [serial, devices]);
 
+  const toLocalDateInput = (date) => {
+    const pad = (n) => n.toString().padStart(2, '0');
+
+    const yyyy = date.getFullYear();
+    const MM = pad(date.getMonth() + 1);
+    const dd = pad(date.getDate());
+    const hh = pad(date.getHours());
+    const mm = pad(date.getMinutes());
+
+    return `${yyyy}-${MM}-${dd}T${hh}:${mm}`;
+  }
+
   const toggleUnassign = () => {
     const update = !removeDev;
 
@@ -147,6 +161,26 @@ export default function DeviceModal({ show, handleClose, selectedRequest, setSel
     }
   }
 
+  const formatter = (date) => {
+    const options = {
+      weekday: "short",
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true
+    };
+
+    const formatter = new Intl.DateTimeFormat("en-US", options);
+
+    const parts = formatter.formatToParts(date);
+    const dateStr = parts.filter(p => ["weekday", "month", "day", "year"].includes(p.type)).map(p => p.value).join(" ");
+    const timeStr = parts.filter(p => ["hour", "minute"].includes(p.type)).map(p => p.value).join(":").toLowerCase() + " " + parts.find(x => x.type === "dayPeriod").value;
+
+    return `${dateStr} ${timeStr}`;
+  }
+
   const updateRequest = async () => {
     const id = selectedRequest.borrow_id;
 
@@ -159,9 +193,10 @@ export default function DeviceModal({ show, handleClose, selectedRequest, setSel
     try {
       const payload = {
         borrow_status: status.replace(" ", "_"),
-        return_date: status === "Checked_out" ? new Date(Date.now() + (14 * 24 * 60 * 60 * 1000)) : undefined,
         device_return_condition: retState ?? undefined,
-        device_id: removeDev ? null : device?.device_id ?? undefined
+        device_id: removeDev ? null : device?.device_id ?? undefined,
+        return_date: !retDate || retDate === "" ? undefined : new Date(retDate),
+        device_usage: devUsage
       };
 
       const response = await fetch(`/api/borrow/update/${id}`, {
@@ -184,7 +219,7 @@ export default function DeviceModal({ show, handleClose, selectedRequest, setSel
         borrow_status: data.borrow_status?.replace("_", " ") ?? "",
         name: data.user ? data.user.first_name + " " + data.user.last_name : "DELETED",
         borrow_date: new Date(data.borrow_date).toDateString(),
-        return_date: data.return_date ? "" : new Date(data.return_date).toDateString(),
+        return_date: data.return_date ? formatter(new Date(data.return_date)) : "Not Set",
         location_nickname: data.device?.location?.location_nickname ?? "Not set",
         device: data.device ? `${data.device.brand} ${data.device.make} ${data.device.model} (${data.device.type})` : "Not set",
         device_serial_number: data.device?.serial_number ?? ""
@@ -232,91 +267,119 @@ export default function DeviceModal({ show, handleClose, selectedRequest, setSel
                     <td className="fw-bold text-end pe-5">On:</td>
                     <td>{selectedRequest.borrow_date.toString()}</td>
                   </tr>
+                  <tr>
+                    <td className="fw-bold text-end pe-5">Return date:</td>
+                    <td>{selectedRequest.return_date}</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
             <div>
-              <Form className="mb-3">
-                <h5 className="fw-bold fs-4 d-flex align-items-center">Set Status</h5>
-                <Form.Select
-                  className="border-0 bg-white text-black"
-                  value={status}
-                  onChange={x => setStatus(x.target.value)}
-                >
-                  <option value={"Submitted"}>Submitted</option>
-                  <option value={"Scheduled"}>Scheduled</option>
-                  <option value={"Checked_out"}>Checked Out</option>
-                  <option value={"Checked_in"}>Checked In</option>
-                  <option value={"Late"}>Late</option>
-                  <option value={"Cancelled"}>Cancelled</option>
-                </Form.Select>
-                {status === "Checked_in" && (
-                  <input className="mt-2 w-100 fs-6 p-2 rounded-2"
-                    placeholder="Device return state" value={retState} onChange={x => setRetState(x.target.value)} />
-                )}
-              </Form>
-            </div>
-            <div className={`${["Checked_out", "Cancelled"].includes(selectedRequest.borrow_status) ? "hidden" : ""}`}>
-              <Form className="d-flex flex-column gap-2">
-                <div className="d-flex w-100 justify-content-between">
-                  <h5 className="fw-bold d-flex align-items-center m-0 fs-4">Reassign Device</h5>
-                  <Button
-                    className={`border-0 ${removeDev ? "bg-danger " : ""}`}
-                    onClick={toggleUnassign}>
-                    Un-Assign
-                  </Button>
+              <h5 className="fw-bold fs-4 text-center mb-0">Update Request</h5>
+              <Form className="mb-3 d-flex flex-column gap-2">
+                <div>
+                  <Form.Label className="fs-5 text-start mb-0">Status</Form.Label>
+                  <Form.Select
+                    className="border-0 bg-white text-black"
+                    value={status}
+                    onChange={x => {
+                      setStatus(x.target.value);
+                      if (x.target.value === "Checked_in") setRetDate(toLocalDateInput(new Date(Date.now())));
+                    }}
+                  >
+                    <option value={"Submitted"}>Submitted</option>
+                    <option value={"Scheduled"}>Scheduled</option>
+                    <option value={"Checked_out"}>Checked Out</option>
+                    <option value={"Checked_in"}>Checked In</option>
+                    <option value={"Late"}>Late</option>
+                    <option value={"Cancelled"}>Cancelled</option>
+                  </Form.Select>
                 </div>
-                {locations && (
-                  <Form.Select className="border-0 bg-white text-black" disabled={removeDev}
-                    value={location} onChange={x => setLocation(x.target.value)}>
-                    <option value={""}>Choose Location</option>
-                    {locations.map((x, k) => (
-                      <option value={x.location_id} key={k}>{x.location_nickname}</option>
-                    ))}
-                  </Form.Select>
+                {status === "Checked_in" && (
+                  <div>
+                    <div>
+                      <Form.Label className="fs-5 text-start mb-0">Device return condition</Form.Label>
+                      <Form.Control type="text" className="ph bg-white text-black w-100 fs-6 p-2 rounded-2"
+                        placeholder="Device return state" value={retState} onChange={x => setRetState(x.target.value)} />
+                    </div>
+                    <div>
+                      <Form.Label className="fs-5 text-start mb-0">Device usage</Form.Label>
+                      <Form.Control type="number" className="ph bg-white text-black w-100 fs-6 p-2 rounded-2"
+                        placeholder="Device usage" value={devUsage} onChange={x => setDevUsage(x.target.value)} />
+                    </div>
+                  </div>
                 )}
-                {types && (
-                  <Form.Select className="border-0 bg-white text-black" value={type} onChange={x => setType(x.target.value)}>
-                    <option value={""}>Choose Type</option>
-                    {types.map((x, k) => (
-                      <option value={x} key={k}>{x}</option>
-                    ))}
-                  </Form.Select>
-                )}
-                {brands && (
-                  <Form.Select className="border-0 bg-white text-black" value={brand} onChange={x => setBrand(x.target.value)}>
-                    <option value={""}>Choose Brand</option>
-                    {brands.map((x, k) => (
-                      <option value={x} key={k}>{x}</option>
-                    ))}
-                  </Form.Select>
-                )}
-                {makes && (
-                  <Form.Select className="border-0 bg-white text-black" value={make} onChange={x => setMake(x.target.value)}>
-                    <option value={""}>Choose Make</option>
-                    {makes.map((x, k) => (
-                      <option value={x} key={k}>{x}</option>
-                    ))}
-                  </Form.Select>
-                )}
-                {models && (
-                  <Form.Select className="border-0 bg-white text-black" value={model} onChange={x => setModel(x.target.value)}>
-                    <option value={""}>Choose Model</option>
-                    {models.map((x, k) => (
-                      <option value={x} key={k}>{x}</option>
-                    ))}
-                  </Form.Select>
-                )}
-                {serials && (
-                  <Form.Select className="border-0 bg-white text-black" value={serial} onChange={x => setSerial(x.target.value)}>
-                    <option value={""}>Pick a Device</option>
-                    {serials.map((x, k) => (
-                      <option value={x} key={k}>{x}</option>
-                    ))}
-                  </Form.Select>
-                )}
+                <div>
+                  <Form.Label className="fs-5 text-start mb-0">{status === "Checked_in" ? "Returned " : "Return By"}</Form.Label>
+                  <Form.Control type="datetime-local" className="bg-white text-black"
+                    value={retDate} onChange={x => setRetDate(x.target.value)} disabled={status === "Checked_in"}
+                  />
+                </div>
               </Form>
             </div>
+            {!["Checked_out", "Cancelled", "Checked_in"].includes(status.replace(' ', '_')) && (
+              <div>
+                <Form className="d-flex flex-column gap-2">
+                  <div className="d-flex w-100 justify-content-between">
+                    <h5 className="fw-bold d-flex align-items-center m-0 fs-5">Reassign Device</h5>
+                    <Button
+                      className={`border-0 ${removeDev ? "bg-danger " : ""}`}
+                      onClick={toggleUnassign}>
+                      Un-Assign
+                    </Button>
+                  </div>
+                  {locations && (
+                    <Form.Select className="border-0 bg-white text-black" disabled={removeDev}
+                      value={location} onChange={x => setLocation(x.target.value)}>
+                      <option value={""}>Choose Location</option>
+                      {locations.map((x, k) => (
+                        <option value={x.location_id} key={k}>{x.location_nickname}</option>
+                      ))}
+                    </Form.Select>
+                  )}
+                  {types && (
+                    <Form.Select className="border-0 bg-white text-black" value={type} onChange={x => setType(x.target.value)}>
+                      <option value={""}>Choose Type</option>
+                      {types.map((x, k) => (
+                        <option value={x} key={k}>{x}</option>
+                      ))}
+                    </Form.Select>
+                  )}
+                  {brands && (
+                    <Form.Select className="border-0 bg-white text-black" value={brand} onChange={x => setBrand(x.target.value)}>
+                      <option value={""}>Choose Brand</option>
+                      {brands.map((x, k) => (
+                        <option value={x} key={k}>{x}</option>
+                      ))}
+                    </Form.Select>
+                  )}
+                  {makes && (
+                    <Form.Select className="border-0 bg-white text-black" value={make} onChange={x => setMake(x.target.value)}>
+                      <option value={""}>Choose Make</option>
+                      {makes.map((x, k) => (
+                        <option value={x} key={k}>{x}</option>
+                      ))}
+                    </Form.Select>
+                  )}
+                  {models && (
+                    <Form.Select className="border-0 bg-white text-black" value={model} onChange={x => setModel(x.target.value)}>
+                      <option value={""}>Choose Model</option>
+                      {models.map((x, k) => (
+                        <option value={x} key={k}>{x}</option>
+                      ))}
+                    </Form.Select>
+                  )}
+                  {serials && (
+                    <Form.Select className="border-0 bg-white text-black" value={serial} onChange={x => setSerial(x.target.value)}>
+                      <option value={""}>Pick a Device</option>
+                      {serials.map((x, k) => (
+                        <option value={x} key={k}>{x}</option>
+                      ))}
+                    </Form.Select>
+                  )}
+                </Form>
+              </div>
+            )}
             <div>
             </div>
           </div>

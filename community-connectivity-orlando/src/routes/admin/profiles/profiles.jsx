@@ -96,30 +96,9 @@ export default function Profile() {
     { text: "Email", dataField: "email" },
     { text: "Zip", dataField: "zip_code" },
     {
-      noSort: true, text: "Actions", formatter: (user) => (
+      noSort: true, text: "Profile", formatter: (user) => (
         <>
-          <Button
-            size="sm"
-            variant="outline-warning"
-            onClick={() => {
-              setSelectedUser(user);
-              setNewZip(user.zip_code || "");
-              setNewLocation(user.city || "");
-              setShowReassignModal(true);
-            }}
-          >
-            Reassign
-          </Button>{" "}
-          <Button
-            size="sm"
-            variant="outline-danger"
-            onClick={() => {
-              setSelectedUser(user);
-              setShowDeleteModal(true);
-            }}
-          >
-            Delete
-          </Button>
+          <Link to={`/profile/${user.user_id}`}><Button>View</Button></Link>
         </>
       )
     },

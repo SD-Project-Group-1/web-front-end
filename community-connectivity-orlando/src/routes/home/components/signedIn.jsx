@@ -107,8 +107,6 @@ export default function SignedIn() {
 
       const { data } = await response.json();
 
-      console.log(data);
-
       setDeviceTypes(data.filter(x => x.available).map(x => x.deviceType));
     } catch (error) {
       console.error("Failed to get avaialbe devices.", error);
