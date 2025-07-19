@@ -6,6 +6,17 @@
   overflow: clip;
   margin-bottom: 50px;
 
+  @media(max-width: 900px) {
+    .table-overflow {
+      overflow-x: scroll;
+      content: clip;
+    }
+
+    table {
+      font-size: 18px !important;
+    }
+  }
+
   table {
     margin-bottom: 0;
     font-size: 26px;

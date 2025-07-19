@@ -40,38 +40,40 @@ export default function CustomTable({ data, columns, paging, sorting, ellipsis }
 
   return (
     <div className={`${styles["table-container"]}`}>
-      <Table>
-        <thead>
-          <tr>
-            {columns.map((c, k) =>
-            (
-              <th key={k} >
-                <div>
-                  {c.text}
-                  {sortingEnabled && !c.noSort &&
-                    (
-                      <Button onClick={() => changeSort(c.sortName ?? c.dataField)}>
-                        {c.dataField === sortField ? sortDir : "--"}
-                      </Button>
-                    )}
-                </div>
-              </th>)
-            )}
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((datum, k) => (
-            <tr key={k}>
-              {columns.map((c, k2) => <td key={k2}>{(!c.formatter) ? (datum[c.dataField]) : c.formatter(datum)}</td>)}
-            </tr>
-          ))}
-          {ellipsis && (
+      <div className={`${styles["table-overflow"]}`}>
+        <Table>
+          <thead>
             <tr>
-              {columns.map((_c, k2) => <td key={k2}>{k2 === 0 ? ". . ." : ""}</td>)}
+              {columns.map((c, k) =>
+              (
+                <th key={k} >
+                  <div>
+                    {c.text}
+                    {sortingEnabled && !c.noSort &&
+                      (
+                        <Button onClick={() => changeSort(c.sortName ?? c.dataField)}>
+                          {c.dataField === sortField ? sortDir : "--"}
+                        </Button>
+                      )}
+                  </div>
+                </th>)
+              )}
             </tr>
-          )}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {data.map((datum, k) => (
+              <tr key={k}>
+                {columns.map((c, k2) => <td key={k2}>{(!c.formatter) ? (datum[c.dataField]) : c.formatter(datum)}</td>)}
+              </tr>
+            ))}
+            {ellipsis && (
+              <tr>
+                {columns.map((_c, k2) => <td key={k2}>{k2 === 0 ? ". . ." : ""}</td>)}
+              </tr>
+            )}
+          </tbody>
+        </Table>
+      </div>
       {pagingEnabled &&
         <div className={`${styles.pagination}`}>
           <Pagination>

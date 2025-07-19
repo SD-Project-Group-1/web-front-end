@@ -150,7 +150,7 @@ function Manage() {
       style={{ backgroundColor: "#102133", minHeight: "100vh" }}
     >
       <Container className="table-container">
-        <div className="d-flex justify-content-between align-items-center mb-3">
+        <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap flex-md-nowrap">
           <h2 className="manage-title mt-4">Device Management</h2>
           <button className="add-device-btn" onClick={() => setShowModal(true)}>
             Add Device
