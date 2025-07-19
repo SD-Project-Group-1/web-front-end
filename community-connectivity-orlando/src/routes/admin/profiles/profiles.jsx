@@ -105,51 +105,7 @@ export default function Profile() {
     userFetch("/api/user/getall")
       .then(data => setUsers(data))
       .catch(() => alert("Failed to fetch user data!"));
-  }, [adminFetch, userFetch, newAdmin]);
-
-  const zipCounts = users.reduce((acc, user) => {
-    const zip = user.zip_code || "N/A";
-    acc[zip] = (acc[zip] || 0) + 1;
-    return acc;
-  }, {});
-
-  const exportCSV = () => {
-    const headers = [
-      "user_id",
-      "first_name",
-      "last_name",
-      "email",
-      "zip_code",
-      "phone",
-      "dob",
-      "city",
-      "state",
-    ];
-    const rows = users.map((user) =>
-      headers.map((field) => `"${user[field] || ""}"`).join(",")
-    );
-    const csv = [headers.join(","), ...rows].join("\n");
-
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "filtered_users.csv";
-    link.click();
-  };
-
-  const exportZipSummary = () => {
-    const rows = Object.entries(zipCounts).map(
-      ([zip, count]) => `"${zip}","${count}"`,
-    );
-    const csv = ["ZIP,Count", ...rows].join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "zip_summary.csv";
-    link.click();
-  };
+  }, [adminFetch, userFetch, newAdmin, user.role]);
 
   return (
     <div className={styles["admin-page"]}>
