@@ -51,7 +51,7 @@ function Reset() {
     };
 
     try {
-      const response = await fetch("/auth/reset-password", {
+      const response = await fetch("/api/auth/reset-password", {
         method: "POST",
         body: JSON.stringify(payload),
         headers: [["Content-Type", "application/json"]],
@@ -79,7 +79,7 @@ function Reset() {
     <div className="reset-wrapper">
       <Card className="reset-card">
         <Card.Body>
-          
+
           <div className="text-center mb-4 color reset-card-title">
             <Card.Subtitle className="mb-2">Reset Password</Card.Subtitle>
           </div>

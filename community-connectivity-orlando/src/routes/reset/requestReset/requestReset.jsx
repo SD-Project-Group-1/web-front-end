@@ -1,15 +1,26 @@
 import { useState } from "react";
 import { Button, Card, Form } from "react-bootstrap";
 import "./requestReset.scss";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 function RequestReset() {
   const navigate = useNavigate();
-    
+
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
+
+  const [params] = useSearchParams();
+
+  let resetUrl = "/api/auth/request-reset";
+
+  const isAdmin = params.get("isAdmin") === "true";
+
+  if (isAdmin)
+    resetUrl = "/api/auth/admin-request-reset";
+
+  console.log(resetUrl);
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -32,31 +43,30 @@ function RequestReset() {
 
     setIsLoading(true);
 
-    const payload = {
-      email: email,
-    };
+
+    const payload = { email };
 
     try {
-      const response = await fetch("/auth/request-reset", {
+      const response = await fetch(resetUrl, {
         method: "POST",
         body: JSON.stringify(payload),
         headers: [["Content-Type", "application/json"]],
       });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Reset email not sent: " + errorData.message || response.statusText);
-      alert("Reset request failed: " + (errorData.message || "Error sending reset email"));
-      return;
-    }
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Reset email not sent: " + errorData.message || response.statusText);
+        alert("Reset request failed: " + (errorData.message || "Error sending reset email"));
+        return;
+      }
 
-    alert("Password reset email sent successfully! Please check your email.");
-      navigate("/login");
+      alert("Password reset email sent successfully! Please check your email.");
+      navigate(`${isAdmin ? "/admin" : ""}/login`);
     } catch (err) {
-        console.error("Network or server error:", err);
-        alert("Server error occurred. Please try again later.");
+      console.error("Network or server error:", err);
+      alert("Server error occurred. Please try again later.");
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -64,19 +74,15 @@ function RequestReset() {
     <div className="reset-wrapper">
       <Card className="reset-card">
         <Card.Body>
-
           <div className="text-center mb-4 color reset-card-title">
             <Card.Subtitle className="mb-2">Reset Password</Card.Subtitle>
           </div>
-                  
           <div className="text-center mb-3">
-              <p className="white">Please enter your email below.</p>
+            <p className="white">Please enter your email below.</p>
           </div>
-          
           <div className="text-center mb-3">
-              <p className="white reset-text">You will receive an email with a link to reset your password.</p>
+            <p className="white reset-text">You will receive an email with a link to reset your password.</p>
           </div>
-
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3" controlId="formEmail">
               <Form.Label className="white">Email</Form.Label>
@@ -99,7 +105,7 @@ function RequestReset() {
             </Button>
           </Form>
           <Link to="/login" className="color">
-              Back to Login
+            Back to Login
           </Link>
         </Card.Body>
       </Card>
@@ -107,4 +113,4 @@ function RequestReset() {
   );
 }
 
-export default RequestReset; 
+export default RequestReset;
