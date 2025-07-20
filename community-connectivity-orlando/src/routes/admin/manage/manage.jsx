@@ -91,8 +91,8 @@ function Manage() {
           brand: data[i].brand,
           model: `${data[i].make} ${data[i].model}`,
           location: data[i].location.location_nickname,
-          status: borrowInfo?.borrow_status?.replace('_', ' ') || "N/A",
-          condition: borrowInfo?.device_return_condition || "N/A",
+          status: data[i].borrow_status === "Checked_out" ? "Checked Out" : "In Store",
+          condition: borrowInfo?.device_return_condition || "",
         };
       }
 

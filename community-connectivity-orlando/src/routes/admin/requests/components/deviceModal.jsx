@@ -222,7 +222,8 @@ export default function DeviceModal({ show, handleClose, selectedRequest, setSel
         return_date: data.return_date ? formatter(new Date(data.return_date)) : "Not Set",
         location_nickname: data.device?.location?.location_nickname ?? "Not set",
         device: data.device ? `${data.device.brand} ${data.device.make} ${data.device.model} (${data.device.type})` : "Not set",
-        device_serial_number: data.device?.serial_number ?? ""
+        device_serial_number: data.device?.serial_number ?? "",
+        verified: data.user.is_verified ?? false
       }
 
       setSelectedRequest(update);
@@ -249,6 +250,12 @@ export default function DeviceModal({ show, handleClose, selectedRequest, setSel
           <div className="">
             <div className="fw-normal fs-5">
               <h5 className="fw-bold w-100 text-center fs-3">Info</h5>
+              {!selectedRequest.verified && (
+                <div className="bg-warning text-black rounded-2 text-center w-auto">
+                  <h4 className="fs-4 fw-bold mb-0">Warning!</h4>
+                  <p className="fs-5">This user is not verified!</p>
+                </div>
+              )}
               <table className="mx-auto w-auto mb-2 ">
                 <tbody>
                   <tr>
