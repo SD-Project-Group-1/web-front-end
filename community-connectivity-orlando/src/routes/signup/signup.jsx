@@ -43,8 +43,9 @@ function Signup() {
       city: formCity,
       state: formState,
       zip_code: formZip,
-      dob: formDOB,
+      dob: new Date(formDOB),
     };
+    console.log(payload);
 
     try {
       const response = await fetch("/api/user/create", {
@@ -55,7 +56,10 @@ function Signup() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("Signup failed:", errorData.message || response.statusText);
+        console.error(
+          "Signup failed:",
+          errorData.message || response.statusText,
+        );
         alert("Signup failed: " + (errorData.message || "Unexpected error"));
         return;
       }
@@ -63,7 +67,7 @@ function Signup() {
       navigate("/login");
     } catch (err) {
       console.error("Network or server error:", err);
-      alert("Server error occurred. Please try again later.");
+      alert(`An error has occured: ${err}`);
     }
   };
 
@@ -148,6 +152,7 @@ function Signup() {
                         required
                         type="tel"
                         value={formPhoneNum}
+                        pattern="[0-9]{10}"
                         onChange={(e) => setFormPhoneNum(e.target.value)}
                       />
                     </Form.Group>
@@ -174,14 +179,19 @@ function Signup() {
             <Card.Body className="color">
               <div className="text-center mb-2">
                 <Card.Title>Orlando City Table Rentals</Card.Title>
-                <Card.Subtitle className="mb-2">Step 2: Additional Info</Card.Subtitle>
+                <Card.Subtitle className="mb-2">
+                  Step 2: Additional Info
+                </Card.Subtitle>
               </div>
               <Form onSubmit={handleSubmitSecond}>
                 <Row>
                   <Col>
                     <Form.Group className="mb-3">
-                      <Form.Label className="white">Street Address 1</Form.Label>
+                      <Form.Label className="white">
+                        Street Address 1
+                      </Form.Label>
                       <Form.Control
+                        required
                         type="text"
                         value={formAddress1}
                         onChange={(e) => setFormAddress1(e.target.value)}
@@ -190,7 +200,9 @@ function Signup() {
                   </Col>
                   <Col>
                     <Form.Group className="mb-3">
-                      <Form.Label className="white">Street Address 2</Form.Label>
+                      <Form.Label className="white">
+                        Street Address 2
+                      </Form.Label>
                       <Form.Control
                         type="text"
                         value={formAddress2}
@@ -205,6 +217,7 @@ function Signup() {
                     <Form.Group className="mb-3">
                       <Form.Label className="white">City</Form.Label>
                       <Form.Control
+                        required
                         type="text"
                         value={formCity}
                         onChange={(e) => setFormCity(e.target.value)}
@@ -215,9 +228,14 @@ function Signup() {
                     <Form.Group className="mb-3">
                       <Form.Label className="white">State</Form.Label>
                       <Form.Control
+                        required
                         type="text"
                         value={formState}
-                        onChange={(e) => setFormState(e.target.value)}
+                        onChange={(e) => {
+                          if (e.target.value.length <= 2) {
+                            setFormState(e.target.value);
+                          }
+                        }}
                       />
                     </Form.Group>
                   </Col>
@@ -228,6 +246,7 @@ function Signup() {
                     <Form.Group className="mb-3">
                       <Form.Label className="white">Zip Code</Form.Label>
                       <Form.Control
+                        required
                         type="text"
                         value={formZip}
                         onChange={(e) => setFormZip(e.target.value)}
