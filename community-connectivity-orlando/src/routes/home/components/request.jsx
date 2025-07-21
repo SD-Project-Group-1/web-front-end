@@ -12,11 +12,6 @@ export default function Request({ request }) {
   const navigate = useNavigate();
 
   const handleUpdate = async (cancel = false) => {
-    const payload = {
-      borrow_status: cancel === true ? "Cancelled" : request.borrow_status,
-      borrow_date: reschedulTo
-    };
-
     if (!cancel) {
       const date = reschedulTo;
 
@@ -30,6 +25,11 @@ export default function Request({ request }) {
         return;
       }
     }
+
+    const payload = {
+      borrow_status: cancel === true ? "Cancelled" : request.borrow_status,
+      borrow_date: reschedulTo
+    };
 
     const response = await fetch(`/api/borrow/update/${request.borrow_id}`, {
       method: "PATCH",
@@ -46,9 +46,15 @@ export default function Request({ request }) {
     navigate(0);
   }
 
+  const showReturn = request.return_date && ["Checked_out", "Late"].includes(request.borrow_status);
+
   return (
     <div className="">
       <h2>Tablet Request Status</h2>
+      <p className="w-100 text-center text-success">Your device is ready! Come pick it up soon!</p>
+      <p className="w-100 text-center text-warning">Your late for your pick up. Don't wait!</p>
+      <p className="w-100 text-center">Don't forget to return your device by the due date!</p>
+      <p className="w-100 text-center text-danger">Your device is past due! Please return it!</p>
       <div className="d-flex flex-wrap justify-content-center">
         <div className="col-lg-6 text-center pb-4 px-2">
           <p><strong>Pickup Time</strong></p>
