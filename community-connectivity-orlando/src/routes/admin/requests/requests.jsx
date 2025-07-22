@@ -66,6 +66,7 @@ function Requests() {
       }
       setQuery(" ");
       setQuery("");
+      setRequests(requests.filter(x => x.borrow_id !== selectedRequest.borrow_id))
     } catch (error) {
       console.error("Could not get request.\n", error);
       alert("Could not delete!");
@@ -123,6 +124,8 @@ function Requests() {
         verified: x.user?.is_verified ?? false,
         user_id: x.user?.user_id ?? "DELETED",
         borrow_status: x.borrow_status?.replace("_", " ") ?? "",
+        device_usage: x.daily_usage,
+        return_condition: x.device_return_condition,
         name: x.user ? x.user.first_name + " " + x.user.last_name : "DELETED",
         borrow_date: formatter(new Date(x.borrow_date)),
         return_date: x.return_date ? formatter(new Date(x.return_date)) : "Not Set",

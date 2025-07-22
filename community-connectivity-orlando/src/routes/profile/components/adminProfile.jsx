@@ -6,7 +6,8 @@ import { useNavigate } from "react-router-dom";
 
 export default function AdminProfile({ admin }) {
   const navigate = useNavigate();
-  const { setUser } = useContext(UserContext);
+  const { user: auth, setUser } = useContext(UserContext);
+
 
   const logout = async () => {
     await fetch("/api/signout", { method: "POST" });
@@ -79,8 +80,10 @@ export default function AdminProfile({ admin }) {
         </div>
         <div className={`${styles.actions}`}>
           <h1>Account Actions</h1>
+
           <Button onClick={startReset}>Reset Password</Button>
           <Button onClick={logout}>Logout</Button>
+
           <Button onClick={deleteAccount}>Delete Account</Button>
         </div>
       </div>

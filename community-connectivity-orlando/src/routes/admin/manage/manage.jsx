@@ -21,8 +21,12 @@ function Manage() {
   const [sortField, setSortField] = useState("serial");
   const [sortDir, setSortDir] = useState("asc");
 
+  const [showSure, setSure] = useState(false);
+
   const paging = { page, pageSize, setPage, setPageSize, count };
   const sorting = { sortField, sortDir, setSortField, setSortDir }
+
+  const [toDelete, setToDelete] = useState({});
 
   const columns = [
     { text: "Serial #", dataField: "serial", sortName: "serial_number" },
@@ -34,14 +38,19 @@ function Manage() {
     {
       text: "Actions", noSort: true, formatter: dev => (
         <>
-          <Button className="bg-danger border-danger fw-bold" onClick={() => deleteDevice(dev.id)}>Delete</Button>
+          <Button className="bg-danger border-danger fw-bold" onClick={() => startDelete(dev)}>Delete</Button>
         </>
       )
     }
   ];
 
-  const deleteDevice = async (id) => {
-    const response = await fetch(`/api/devices/delete/${id}`, { method: "DELETE" });
+  const startDelete = (dev) => {
+    setToDelete(dev);
+    setSure(true);
+  }
+
+  const deleteDevice = async () => {
+    const response = await fetch(`/api/devices/delete/${toDelete.id}`, { method: "DELETE" });
 
     if (!response.ok) {
       console.error(response, await response.text());
@@ -49,7 +58,8 @@ function Manage() {
       return;
     }
 
-    setDevices(devices.filter(x => x.id !== id));
+    setDevices(devices.filter(x => x.id !== toDelete.id));
+    setSure(false);
   }
 
   const requestData = useCallback(async () => {
@@ -262,6 +272,24 @@ function Manage() {
           </button>
         </Modal.Footer>
       </Modal>
+      <Modal
+        show={showSure}
+        centered
+      >
+        <Modal.Header>
+          <Modal.Title className="fw-bold">Are you sure you want to delete this device?</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p className="fs-4 w-100 text-center fw-bold">{toDelete.brand} {toDelete.make} {toDelete.model} ({toDelete.type})</p>
+          <p className="fs-4 w-100 text-center">found at</p>
+          <p className="fs-4 w-100 text-center fw-bold">{toDelete.location}</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button className="bg-danger fw-bold border-danger" onClick={deleteDevice}>Yes</Button>
+          <Button className="fw-bold" onClick={() => setSure(false)}>No</Button>
+        </Modal.Footer>
+      </Modal>
+
     </div>
   );
 }
