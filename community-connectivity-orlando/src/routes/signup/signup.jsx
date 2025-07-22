@@ -55,12 +55,13 @@ function Signup() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        let errorData = await response.text();
+        try { errorData = JSON.parse(errorData); errorData = errorData.error ?? errorData.message ?? errorData } catch { }
         console.error(
           "Signup failed:",
-          errorData.message || response.statusText,
+          errorData || response.statusText,
         );
-        alert("Signup failed: " + (errorData.message || "Unexpected error"));
+        alert("Signup failed: " + (errorData || "Unexpected error"));
         return;
       }
 
