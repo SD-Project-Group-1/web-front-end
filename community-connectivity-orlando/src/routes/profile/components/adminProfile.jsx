@@ -83,7 +83,6 @@ export default function AdminProfile({ admin }) {
           {admin.admin_id !== auth.admin_id && (
             <Button onClick={logout}>Logout</Button>
           )}
-          <Button onClick={startReset}>Reset Password</Button>
           <Button onClick={logout}>Logout</Button>
           <Button onClick={deleteAccount}>Delete Account</Button>
         </div>
