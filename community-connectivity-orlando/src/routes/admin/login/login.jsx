@@ -2,7 +2,7 @@ import { useContext, useState } from "react";
 import { Button, Card, Form } from "react-bootstrap";
 import "./login.scss";
 import { UserContext } from "../../../context/userContext";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -11,36 +11,36 @@ function Login() {
   const { setUser } = useContext(UserContext);
   const navigate = useNavigate();
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const payload = {
-    email,
-    password,
-  };
+    const payload = {
+      email,
+      password,
+    };
 
-  try {
-    const response = await fetch("/api/admin/signin", {
-      method: "POST",
-      body: JSON.stringify(payload),
-      headers: [["Content-Type", "application/json"]],
-    });
+    try {
+      const response = await fetch("/api/admin/signin", {
+        method: "POST",
+        body: JSON.stringify(payload),
+        headers: [["Content-Type", "application/json"]],
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Admin login failed:", errorData.message || response.statusText);
-      alert("Login failed: " + (errorData.message || "Invalid credentials"));
-      return;
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Admin login failed:", errorData.message || response.statusText);
+        alert("Login failed: " + (errorData.message || "Invalid credentials"));
+        return;
+      }
+
+      const data = await response.json();
+      setUser(data.admin);
+      navigate("/admin");
+    } catch (err) {
+      console.error("Network or server error:", err);
+      alert("Server error occurred. Please try again later.");
     }
-
-    const data = await response.json();
-    setUser(data.admin);
-    navigate("/admin");
-  } catch (err) {
-    console.error("Network or server error:", err);
-    alert("Server error occurred. Please try again later.");
-  }
-};
+  };
 
   return (
     <div className="login-wrapper">
@@ -75,6 +75,14 @@ function Login() {
               <strong>Log in</strong>
             </Button>
           </Form>
+          <div className="links-row">
+            <Link to="/login" className="color">
+              User Login
+            </Link>
+            <Link to="/reset/request-reset?isAdmin=true" className="color">
+              Password Reset
+            </Link>
+          </div>
         </Card.Body>
       </Card>
     </div>
