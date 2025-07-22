@@ -54,10 +54,10 @@ function Panel() {
         statusData[i] = {
           id: data[i].serial_number,
           name: `${data[i].brand} ${data[i].make} ${data[i].model}`,
-          status: data[i].borrow.at(0)?.borrow_status?.replace("_", " ") ?? " ",
+          status: data[i].borrow_status === "Checked_out" ? "Checked Out" : "In Store",
           lastCondition:
             data[i].borrow.at(0)?.device_return_condition?.replace("_", " ") ??
-              " ",
+            " ",
         };
       }
       setDevStatus(statusData);
@@ -69,6 +69,7 @@ function Panel() {
   const reqColumns = [
     { text: "First Name", dataField: "first" },
     { text: "Last Name", dataField: "last" },
+    { text: "Status", dataField: "status" },
     { text: "Device", dataField: "device" },
   ];
 
@@ -102,6 +103,7 @@ function Panel() {
         requestData[i] = {
           first: data[i].user?.first_name,
           last: data[i].user?.last_name,
+          status: data[i].borrow_status,
           device: data[i].device ? `${data[i].device.brand} ${data[i].device.make} ${data[i].device.model}` : "Not Set",
         };
       }
@@ -130,7 +132,7 @@ function Panel() {
             <div>
               <h3>Tutorial Video</h3>
               <div className={`${styles["video-box"]} `}>
-                <video src="https://files.theneil.zone/bsof.mp4" />
+                <video src="/tutorial_compressed.mp4" controls />
                 <Button onClick={hideVideo}>Hide?</Button>
               </div>
             </div>
@@ -138,7 +140,7 @@ function Panel() {
         {hideVid &&
           (
             <div>
-              <Button onClick={showVideo}>Show?</Button>
+              <Button onClick={showVideo}>Show tutorial video?</Button>
             </div>
           )}
         <div>

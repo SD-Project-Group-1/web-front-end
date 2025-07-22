@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Modal, Form, Button } from "react-bootstrap";
+import { toLocalDateInput } from "../../../../helpers/date";
 
 export default function DeviceModal({ show, handleClose, selectedRequest, setSelectedRequest }) {
   const [devices, setDevices] = useState(null);
@@ -19,10 +20,13 @@ export default function DeviceModal({ show, handleClose, selectedRequest, setSel
   const [serial, setSerial] = useState("");
 
   const [status, setStatus] = useState(selectedRequest?.borrow_status?.replace(" ", "_") ?? null);
-  const [retState, setRetState] = useState(selectedRequest?.device_return_condition ?? null);
+  const [retState, setRetState] = useState(selectedRequest?.return_condition ?? null);
   const [removeDev, setRemoveDev] = useState(false);
-  const [retDate, setRetDate] = useState(selectedRequest.return_date_val);
-  const [devUsage, setDevUsage] = useState(null);
+
+  const initialReturnDate = new Date(selectedRequest.return_date_val);
+
+  const [retDate, setRetDate] = useState(isNaN(initialReturnDate) ? null : toLocalDateInput(initialReturnDate));
+  const [devUsage, setDevUsage] = useState(selectedRequest.device_usage);
 
   useEffect(() => {
     (async () => {
@@ -111,7 +115,7 @@ export default function DeviceModal({ show, handleClose, selectedRequest, setSel
   }, [devices, type, brand, make, model]);
 
   useEffect(() => {
-    if (!serial) return;
+    if (!serial || !devices) return;
     const device = devices.find(x => x.serial_number === serial);
 
     if (!device) {
@@ -127,18 +131,6 @@ export default function DeviceModal({ show, handleClose, selectedRequest, setSel
 
     setDevice(device);
   }, [serial, devices]);
-
-  const toLocalDateInput = (date) => {
-    const pad = (n) => n.toString().padStart(2, '0');
-
-    const yyyy = date.getFullYear();
-    const MM = pad(date.getMonth() + 1);
-    const dd = pad(date.getDate());
-    const hh = pad(date.getHours());
-    const mm = pad(date.getMinutes());
-
-    return `${yyyy}-${MM}-${dd}T${hh}:${mm}`;
-  }
 
   const toggleUnassign = () => {
     const update = !removeDev;
@@ -196,7 +188,7 @@ export default function DeviceModal({ show, handleClose, selectedRequest, setSel
         device_return_condition: retState ?? undefined,
         device_id: removeDev ? null : device?.device_id ?? undefined,
         return_date: !retDate || retDate === "" ? undefined : new Date(retDate),
-        device_usage: devUsage
+        daily_usage: devUsage
       };
 
       const response = await fetch(`/api/borrow/update/${id}`, {
@@ -222,7 +214,9 @@ export default function DeviceModal({ show, handleClose, selectedRequest, setSel
         return_date: data.return_date ? formatter(new Date(data.return_date)) : "Not Set",
         location_nickname: data.device?.location?.location_nickname ?? "Not set",
         device: data.device ? `${data.device.brand} ${data.device.make} ${data.device.model} (${data.device.type})` : "Not set",
-        device_serial_number: data.device?.serial_number ?? ""
+        device_serial_number: data.device?.serial_number ?? "",
+        verified: data.user.is_verified ?? false,
+        device_usage: data.daily_usage
       }
 
       setSelectedRequest(update);
@@ -249,6 +243,12 @@ export default function DeviceModal({ show, handleClose, selectedRequest, setSel
           <div className="">
             <div className="fw-normal fs-5">
               <h5 className="fw-bold w-100 text-center fs-3">Info</h5>
+              {!selectedRequest.verified && (
+                <div className="bg-warning text-black rounded-2 text-center w-auto">
+                  <h4 className="fs-4 fw-bold mb-0">Warning!</h4>
+                  <p className="fs-5">This user is not verified!</p>
+                </div>
+              )}
               <table className="mx-auto w-auto mb-2 ">
                 <tbody>
                   <tr>
@@ -303,9 +303,19 @@ export default function DeviceModal({ show, handleClose, selectedRequest, setSel
                         placeholder="Device return state" value={retState} onChange={x => setRetState(x.target.value)} />
                     </div>
                     <div>
-                      <Form.Label className="fs-5 text-start mb-0">Device usage</Form.Label>
-                      <Form.Control type="number" className="ph bg-white text-black w-100 fs-6 p-2 rounded-2"
-                        placeholder="Device usage" value={devUsage} onChange={x => setDevUsage(x.target.value)} />
+                      <Form.Label className="fs-5 text-start mb-0">Device hours used daily</Form.Label>
+                      <Form.Control
+                        type="text" // not number
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        className="ph bg-white text-black w-100 fs-6 p-2 rounded-2"
+                        placeholder="Device usage"
+                        value={devUsage}
+                        onChange={x => {
+                          const val = x.target.value;
+                          if (/^\d*$/.test(val)) setDevUsage(val);
+                        }}
+                      />
                     </div>
                   </div>
                 )}
