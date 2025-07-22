@@ -132,7 +132,7 @@ function Panel() {
             <div>
               <h3>Tutorial Video</h3>
               <div className={`${styles["video-box"]} `}>
-                <video src="https://files.theneil.zone/bsof.mp4" />
+                <video src="/tutorial_compressed.mp4" controls />
                 <Button onClick={hideVideo}>Hide?</Button>
               </div>
             </div>
@@ -140,7 +140,7 @@ function Panel() {
         {hideVid &&
           (
             <div>
-              <Button onClick={showVideo}>Show?</Button>
+              <Button onClick={showVideo}>Show tutorial video?</Button>
             </div>
           )}
         <div>
