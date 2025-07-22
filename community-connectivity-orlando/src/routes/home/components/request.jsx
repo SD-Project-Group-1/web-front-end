@@ -6,7 +6,7 @@ export default function Request({ request }) {
   const [rescheduleModal, setRescheduleModal] = useState(false);
   const [areYouSureModal, setAreYouSureModal] = useState(false);
 
-  const date = new Date(request.borrow_date);
+  let date = new Date(request.borrow_date);
 
   const [reschedulTo, setRescheduleTo] = useState(date);
   const navigate = useNavigate();
@@ -48,26 +48,63 @@ export default function Request({ request }) {
 
   const showReturn = request.return_date && ["Checked_out", "Late"].includes(request.borrow_status);
 
+  if (showReturn) {
+    date = new Date(request.return_date);
+  }
+
   return (
     <div className="">
       <h2>Tablet Request Status</h2>
-      <p className="w-100 text-center text-success">Your device is ready! Come pick it up soon!</p>
-      <p className="w-100 text-center text-warning">Your late for your pick up. Don't wait!</p>
-      <p className="w-100 text-center">Don't forget to return your device by the due date!</p>
-      <p className="w-100 text-center text-danger">Your device is past due! Please return it!</p>
+      {request.borrow_status === "Submitted" && (
+        <p className="w-100 text-center text-success">Check back in later to see when your request has been reviewed!</p>
+      )}
+      {request.borrow_status === "Scheduled" && (
+        <p className="w-100 text-center text-success">Your request is approved! Pick up your device on your scheduled visit!</p>
+      )}
+      {request.borrow_status === "Late" && (
+        <p className="w-100 text-center text-warning">Your late for your pick up. Don't wait!</p>
+      )}
+      {request.borrow_status === "Checked_out" && (
+        <p className="w-100 text-center text-decoration-underline">Don't forget to return your device by the due date!</p>
+      )}
+      {date.valueOf() < Date.now() - (24 * 60 * 60 * 1000) && (
+        <p className="w-100 text-center text-danger">Your device is past due! Please return it!</p>
+      )}
       <div className="d-flex flex-wrap justify-content-center">
-        <div className="col-lg-6 text-center pb-4 px-2">
-          <p><strong>Pickup Time</strong></p>
-          <p>
-            {date.toLocaleString("en-US", { weekday: "long", month: "long", day: "numeric" })}
-            <br />
-            {date.toLocaleString("en-US", { hour: "numeric", minute: "numeric" })}
-          </p>
-        </div>
+        {showReturn ? (
+          <div className="col-lg-6 text-center pb-4 px-2">
+            <p><strong>Return by</strong></p>
+            <p>
+              {date.toLocaleString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+              <br />
+              {date.toLocaleString("en-US", { hour: "numeric", minute: "numeric" })}
+            </p>
+          </div>
+        ) : (
+          <div className="col-lg-6 text-center pb-4 px-2">
+            <p><strong>Pickup Time</strong></p>
+            <p>
+              {date.toLocaleString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+              <br />
+              {date.toLocaleString("en-US", { hour: "numeric", minute: "numeric" })}
+            </p>
+          </div>
+        )}
         <div className="col-lg-6 text-center pb-4 px-2">
           <p><strong>Pickup Location</strong></p>
           <p>
-            {request.device?.location?.street_address ?? "Unset"}
+            {request.device?.location ? ((() => {
+              const loc = request.device.location;
+              return (
+                <div>
+                  <p className="mb-0">{`${loc.street_address}, ${loc.city} ${loc.state} ${loc.zip_code}`}</p>
+                  <p>{`(${loc.location_nickname})`}</p>
+                </div>
+              );
+            })()
+            ) : (
+              "Unset"
+            )}
           </p>
         </div>
         <div className="col-lg-6 text-center pb-4 px-2">
@@ -79,13 +116,17 @@ export default function Request({ request }) {
         <div className="col-lg-6 text-center pb-4 px-2">
           <p><strong>Status</strong></p>
           <p>
-            {request.borrow_status}
+            {request.borrow_status.replace('_', ' ')}
           </p>
         </div>
       </div>
       <div className="w-100 d-flex justify-content-center gap-5">
-        <Button onClick={() => setRescheduleModal(true)} className="fs-3">Reschedule</Button>
-        <Button onClick={() => setAreYouSureModal(true)} className="fs-3">Cancel Request</Button>
+        {request.borrow_status === "Submitted" && (
+          <Button onClick={() => setRescheduleModal(true)} className="fs-3">Reschedule</Button>
+        )}
+        {["Submitted", "Scheduled"].includes(request.borrow_status) && (
+          <Button onClick={() => setAreYouSureModal(true)} className="fs-3">Cancel Request</Button>
+        )}
       </div>
       <Modal show={areYouSureModal} centered>
         <Modal.Header>

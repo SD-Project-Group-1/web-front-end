@@ -165,7 +165,9 @@ export default function UserProfile({ user }) {
         <div className={`${styles.actions}`}>
           <h1>Account Actions</h1>
           <Button onClick={startReset}>Reset Password</Button>
-          <Button onClick={logout}>Logout</Button>
+          {auth.user_id === user.user_id &&
+            <Button onClick={logout}>Logout</Button>
+          }
           <Button onClick={deleteAccount}>Delete Account</Button>
         </div>
       </div>

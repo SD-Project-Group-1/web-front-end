@@ -117,14 +117,15 @@ export default function Profile() {
         <Form className="mb-3 d-flex flex-column flex-md-row gap-2" onSubmit={ev => ev.preventDefault()}>
           <Form.Control
             type="text"
-            placeholder="Search ..."
-            className="w-75"
+            placeholder="Search..."
+            className="w-75 text-black bg-white ph"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter") userTableState.setQuery(searchTerm); adminTableState.setQuery(searchTerm) }}
           />
           <Button
             className="w-25 fw-bold"
+            disabled={user.role === "staff"}
             onClick={() => setAdminModal(true)}
           >
             Add Admin
